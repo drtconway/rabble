@@ -1,0 +1,88 @@
+@media print {
+    @page {
+        size: A4;
+        margin: 1cm;
+    }
+    body {
+        font-size: 10pt;
+        margin: 0;
+    }
+}
+
+body {
+    padding: 1em;
+     font-family: Roboto, sans-serif;
+}
+
+.container {
+    max-width: 12in;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.colGroup {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+}
+.col2 {
+    width: 50%;
+}
+.col3 {
+    width: 33%;
+}
+.col4 {
+    width: 25%;
+}
+.col5 {
+    width: 20%;
+}
+
+.address-box > p {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.fld-label {
+    font-weight: bold;
+    text-align: right;
+    vertical-align: top;
+    padding-right: 0.5em;
+}
+.gene-table {
+    width: 100%;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+.gene-table > td {
+    width: 12%;
+}
+.gene-table-row:nth-child(odd) {
+    background: #DDD;
+}
+.gene-table-row:nth-child(even) {
+    background: #EEE;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.vskip-after {
+    margin-bottom: 4em;
+}
+.panel {
+    border: solid black 1pt;
+    padding: 1em;
+}
+.header-logo {
+    float: left;
+    width: 1in;
+    font-size: 7pt;
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 2em;
+    margin-right: 2em;
+}
+

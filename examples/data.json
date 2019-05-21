@@ -1,0 +1,42 @@
+{
+    "request": {
+        "requester": {
+            "doctor": "Dr Quentin Rothchild",
+                "address": "Department of Molecular Pathology\nVery Good Cancer Center\n999 High St\nMelbourne VIC 3001"
+        },
+            "sample": {
+                "episode": "10234567",
+                "collected": "04-Mar-2019",
+                "received": "05-Mar-2019"
+            },
+            "patient": {
+                "name": "Margaret Thatcher",
+                "urn": "PM12345678",
+                "dob": "01-Jan-1938",
+                "sex": "F",
+                "location": "Very Private Hospital"
+            }
+    },
+        "test": {
+            "description": "The Colorectal and Polyps assay targets the familial cancer-related genes: APC, AXIN2, BMPR1A, BUB1B, EPCAM, GREM1, MLH1, MSH2, MSH6, MUTYH, NTHL1, PMS2*, POLD1, POLE, PTEN, SMAD4, STK11."
+        },
+        "result": {
+            "genes": [
+            {"gene": "MUTYH", "exon": "ex13/16", "tx": "NM_001128425.1", "hgvsc": "c.1187G>A", "hgvsp": "NP_001121897.1:p.(Gly396Asp)", "class": "C5: Pathogenic"},
+            {"gene": "MUTYH", "exon": "ex7/16",  "tx": "NM_001128425.1", "hgvsc": "c.536A>G", "hgvsp": "NP_001121897.1:p.(Tyr179Cys)", "class": "C5: Pathogenic"}
+            ],
+            "interpretation": [
+                "MUTYH: MUTYH encodes MutY DNA Glycosylase, a DNA glycosylase involved in oxidative DNA damage repair via base excision repair. Biallelic deleterious mutations in MUTYH are associated with MUTYH-associated polyposis (MAP), an autosomal recessive condition, which confers susceptibility to colorectal cancer."
+            ],
+            "comments": [
+                "The heterozygous variant c.1187G>A detected in exon 13 of the MUTYH gene is a missense change resulting in an amino acid substitution from a Glycine to an Aspartic Acid at codon 396, p.(Gly396Asp). This variant has been reported multiple times in both LOVD and ClinVar databases as pathogenic. This variant is one of the common MUTYH pathogenic founder mutations in European populations, which has been reported to co-segregate with colorectal cancer and MUTYH-associated polyposis (MAP) (Aretz et al, Eur J Hum Genet (2014) 22(7):923-9 and Theodoratou et al, British Journal of Cancer (2010) 103(12):1875-84). In populations of European origin, the missense variants p.Tyr179Cys and p.Gly396Asp account for up to 80% of MUTYH variants identified in MAP patients (Sieber et al, N Engl J Med (2003) 348(9):791-9; Kanter-Smoler et al, Clin Gastroenterol Hepatol (2006) 4(4):499-506 and Aretz et al, Eur J Hum Genet (2014) 22(7):923-9). In healthy controls from different populations, the allele frequencies for this variant range from 0.1 to 1.8% (Aretz et al, Eur J Hum Genet (2014) 22(7):923-9). Functional studies have shown that this missense change disrupts MUTYH protein function (Parker et al, Carcinogenesis (2005) 26(11):2010-18; Mohsin et al, Gastroentorology (2008) 135(2):499-507 and Ruggieri et al, Oncogene (2013) 32(38):4500-8). Based on current knowledge, this is a pathogenic (Class 5) variant. This result has clinical management implications for both the patient and other at-risk family members. First-degree relatives of this patient have a 50% risk of inheriting the abnormal gene and predictive testing is available through the appropriate genetic service. ***This patient is a heterozygous carrier of a recessive condition.",
+            "The heterozygous variant c.1187G>A detected in exon 13 of the MUTYH gene is a missense change resulting in an amino acid substitution from a Glycine to an Aspartic Acid at codon 396, p.(Gly396Asp). This variant has been reported multiple times in both LOVD and ClinVar databases as pathogenic. This variant is one of the common MUTYH pathogenic founder mutations in European populations, which has been reported to co-segregate with colorectal cancer and MUTYH-associated polyposis (MAP) (Aretz et al, Eur J Hum Genet (2014) 22(7):923-9 and Theodoratou et al, British Journal of Cancer (2010) 103(12):1875-84). In populations of European origin, the missense variants p.Tyr179Cys and p.Gly396Asp account for up to 80% of MUTYH variants identified in MAP patients (Sieber et al, N Engl J Med (2003) 348(9):791-9; Kanter-Smoler et al, Clin Gastroenterol Hepatol (2006) 4(4):499-506 and Aretz et al, Eur J Hum Genet (2014) 22(7):923-9). In healthy controls from different populations, the allele frequencies for this variant range from 0.1 to 1.8% (Aretz et al, Eur J Hum Genet (2014) 22(7):923-9). Functional studies have shown that this missense change disrupts MUTYH protein function (Parker et al, Carcinogenesis (2005) 26(11):2010-18; Mohsin et al, Gastroentorology (2008) 135(2):499-507 and Ruggieri et al, Oncogene (2013) 32(38):4500-8). Based on current knowledge, this is a pathogenic (Class 5) variant. This result has clinical management implications for both the patient and other at-risk family members developing disease. First-degree relatives of this patient have a 50% risk of inheriting the abnormal gene and predictive testing is available through the appropriate genetic service. ***This patient is a heterozygous carrier of a recessive condition."
+            ]
+        },
+        "authorisation": {
+            "reporter": "A. N. Other-Curator",
+            "reported": "15-May-2019 10:27",
+            "authoriser": "\u0020",
+            "authorised": "\u0020"
+        }
+}

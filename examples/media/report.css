@@ -77,7 +77,7 @@ body {
 }
 .header-logo {
     float: left;
-    width: 1in;
+    width: 0.707in;
     font-size: 7pt;
     text-align: center;
     margin-top: auto;
@@ -86,3 +86,7 @@ body {
     margin-right: 2em;
 }
 
+.editable {
+    border: solid SeaGreen 1pt;
+    padding: 2pt;
+}

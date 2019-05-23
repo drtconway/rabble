@@ -3,11 +3,11 @@
   <title>PeterMac FRCP Report</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
   <link href="media/report.css" type="text/css" rel="stylesheet" />
-  <link href="https://netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.css" rel="stylesheet">
+  <link href="https://netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/medium-editor@latest/dist/js/medium-editor.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rangy/1.3.0/rangy-core.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rangy/1.3.0/rangy-classapplier.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/medium-editor@latest/dist/css/medium-editor.min.css" type="text/css" media="screen" charset="utf-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/medium-editor@latest/dist/css/medium-editor.min.css" type="text/css" media="screen" charset="utf-8" />
  </head>
  <body>
   <div class='container'>
@@ -31,10 +31,12 @@
      </div>
     </div>
    </div>
+   <div data-rabble-group="wibble">
+   </div>
    <div class='colGroup panel' data-rabble-group='request'>
     <div class='col' data-rabble-group='requester'>
      <table>
-      <tr><td class='fld-label'>Requester:</td><td data-rabble-group='doctor'>Dr Adam B Crouch</td></tr>
+      <tr><td class='fld-label'>Requester:</td><td data-rabble-text='doctor'>Dr Adam B Crouch</td></tr>
       <tr><td class='fld-label'>Phone:</td><td data-rabble-text='phone' data-rabble-edit='true'></td></tr>
       <tr><td class='fld-label'>Address:</td><td class='address-box' data-rabble-rich='address' data-rabble-edit='true'><p>Suite 9, Level 99</p><p>999 Collins St</p><p>Melbourne, VIC 3001</p></td></tr>
      </table>
@@ -89,13 +91,13 @@
     <p>This laboratory assumes sample identification, family relationships, and clinical diagnoses are as stated on the request. Our clinical recommendations may be based on evidence from third-party data sources and should be interpreted in the context of all other clinical and laboratory information for this patient.</p>
     <p>Please contact the laboratory on 01&#xA0;2345&#xA0;6789 if you wish to discuss this report further.</p>
    </div>
-   <div class='row' data-rabble='authorisation'>
+   <div class='row' data-rabble-group='authorisation'>
     <div class='col-sm-4'>
      <table>
-      <tr><td class='fld-label'>Reported by:</td><td data-rabble='reporter'>A. Curator</td></tr>
-      <tr><td class='fld-label'>Reported on:</td><td data-rabble='reported'>15-May-2019 15:26</td></tr>
-      <tr><td class='fld-label'>Authorised by:</td><td data-rabble='authoriser'>Sue Pervisor</td></tr>
-      <tr><td class='fld-label'>Authorised on:</td><td data-rabble='authorised'>16-May-2019 11:56</td></tr>
+      <tr><td class='fld-label'>Reported by:</td><td data-rabble-text='reporter'>A. Curator</td></tr>
+      <tr><td class='fld-label'>Reported on:</td><td data-rabble-text='reported'>15-May-2019 15:26</td></tr>
+      <tr><td class='fld-label'>Authorised by:</td><td data-rabble-text='authoriser'>Sue Pervisor</td></tr>
+      <tr><td class='fld-label'>Authorised on:</td><td data-rabble-text='authorised'>16-May-2019 11:56</td></tr>
      </table>
     </div>
    </div>

@@ -15,7 +15,7 @@ repositories {
 
 shadowJar {
     manifest {
-        attributes 'Main-Class': 'org.petermac.rabble.Rabble'
+        attributes 'Main-Class': 'org.petermac.rabble.RabbleCli'
     }
 }
 
@@ -23,6 +23,11 @@ shadowJar {
 dependencies {
 
     compile 'javax.json:javax.json-api:1.1.4'
+
+    //compile 'commons-cli:commons-cli:1.4'
+    compile 'info.picocli:picocli:4.0.0-alpha-3'
+
+
     compile 'org.glassfish:javax.json:1.1.4'
     compile 'org.slf4j:slf4j-api:1.7.21'
 

@@ -71,10 +71,16 @@ body {
 .vskip-after {
     margin-bottom: 4em;
 }
+
+.para {
+    margin-bottom: 1em;
+}
+
 .panel {
     border: solid black 1pt;
     padding: 1em;
 }
+
 .header-logo {
     float: left;
     width: 0.707in;

@@ -10,7 +10,11 @@ import java.util.Set;
 import java.util.HashSet;
 
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonNumber;
+import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import javax.json.JsonValue;
 
 import javax.xml.parsers.DocumentBuilder; 
@@ -55,13 +59,26 @@ class RabbleCliTest implements Callable<Integer> {
             description = "perform strict checking")
     public boolean strict;
 
-    private void checkNode(Node node, String ctxt,
-                           String path, Set<String> allPaths, Set<String> terminalPaths,
-                           boolean inRich, boolean inText) {
-        assert !(inRich && inText);
+    static class PathSet {
+        public Set<String> groupPaths;
+        public Set<String> richPaths;
+        public Set<String> textPaths;
+
+        PathSet() {
+            groupPaths = new HashSet<String>();
+            richPaths = new HashSet<String>();
+            textPaths = new HashSet<String>();
+        }
+
+        public boolean contains(String path) {
+            return groupPaths.contains(path) || richPaths.contains(path) || textPaths.contains(path);
+        }
+    }
+
+    private void checkNode(Node node, String ctxt, String path, PathSet paths) {
         switch (node.getNodeType()) {
             case Node.ELEMENT_NODE:
-                if (inText) {
+                if (paths.textPaths.contains(path)) {
                     error(ctxt, "element %s is inside a context marked for text only.", node.getNodeName());
                     return;
                 }
@@ -99,7 +116,7 @@ class RabbleCliTest implements Callable<Integer> {
                     }
                 }
 
-                if (inRich) {
+                if (paths.richPaths.contains(path)) {
                     if (groupName != null || richName != null || textName != null || hasEdit) {
                         error(ctxt, "elements inside a rich node must not have data-rabble attributes.");
                         return;
@@ -117,7 +134,7 @@ class RabbleCliTest implements Callable<Integer> {
                         warn(ctxt, "group nodes may not be rich nodes or text nodes");
                     }
                     kidPath = path + "/" + groupName;
-                    allPaths.add(kidPath);
+                    paths.groupPaths.add(kidPath);
                 }
                 else if (richName != null) {
                     if (textName != null) {
@@ -125,14 +142,12 @@ class RabbleCliTest implements Callable<Integer> {
                     }
                     kidInRich = true;
                     String termPath = path + "/" + richName;
-                    allPaths.add(termPath);
-                    terminalPaths.add(termPath);
+                    paths.richPaths.add(termPath);
                 }
                 else if (textName != null) {
                     kidInText = true;
                     String termPath = path + "/" + textName;
-                    allPaths.add(termPath);
-                    terminalPaths.add(termPath);
+                    paths.textPaths.add(termPath);
                 }
                 else if (hasEdit) {
                     warn(ctxt, "nodes without rich or text annotations should not be marked as editable.");
@@ -140,9 +155,84 @@ class RabbleCliTest implements Callable<Integer> {
 
                 NodeList kids = elem.getChildNodes();
                 for (int i = 0; i < kids.getLength(); i++) {
-                    checkNode(kids.item(i), elemCtxt, kidPath, allPaths, terminalPaths, kidInRich, kidInText);
+                    checkNode(kids.item(i), elemCtxt, kidPath, paths);
                 }
                 break;
+        }
+    }
+
+    private void checkJson(JsonValue data, String path, PathSet paths) throws Exception {
+        switch (data.getValueType()) {
+            case ARRAY:
+                JsonArray array = (JsonArray) data;
+                for (int i = 0; i < array.size(); i++) {
+                    checkJson(array.get(i), path, paths);
+                }
+                break;
+            case OBJECT:
+                JsonObject object = (JsonObject) data;
+                if (paths.richPaths.contains(path)) {
+                    checkRichJson(path, object);
+                    break;
+                }
+                if (strict && !paths.groupPaths.contains(path)) {
+                    error(path, "the template does not support an object in this context");
+                }
+                if (paths.textPaths.contains(path)) {
+                    error(path, "the template requires this path to contain text, not an object");
+                }
+                for (String key : object.keySet()) {
+                    String kidPath = path + "/" + key;
+                    if (!paths.contains(kidPath)) {
+                        warn(kidPath, "the template does not contain this path");
+                        continue;
+                    }
+                    checkJson(object.get(kidPath), kidPath, paths);
+                }
+                break;
+            case STRING:
+                JsonString txt = (JsonString) data;
+                if (paths.groupPaths.contains(path)) {
+                    error(path, "this path is expect to contain an object, not text");
+                }
+                break;
+            default:
+                throw new Exception("checkJson: unexpected value type");
+        }
+    }
+
+    private void checkRichJson(String path, JsonObject object) {
+        if (!object.containsKey("name")) {
+            error(path, "json encoded html must have a name member");
+            return;
+        }
+        for (String key : object.keySet()) {
+            switch (key) {
+                case "name":
+                    break;
+                case "attributes":
+                    JsonObject attrs = object.getJsonObject(key);
+                    for (String attrName : attrs.keySet()) {
+                        JsonValue attrVal = attrs.get(attrName);
+                        if (attrVal.getValueType() != JsonValue.ValueType.STRING) {
+                            error(path, "json encoded html attribute values must be strings");
+                        }
+                    }
+                    break;
+                case "children":
+                    JsonArray kids = object.getJsonArray("children");
+                    for (int i = 0; i < kids.size(); i++) {
+                        JsonValue kid = kids.get(i);
+                        if (kid.getValueType() == JsonValue.ValueType.OBJECT) {
+                            JsonObject kidObj = (JsonObject) kid;
+                            checkRichJson(path, kidObj);
+                        }
+                    }
+                    break;
+                default:
+                    error(path, "json encoded html contains unexpected structure key %s", key);
+                    break;
+            }
         }
     }
 
@@ -167,34 +257,46 @@ class RabbleCliTest implements Callable<Integer> {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder(); 
 
-        Document doc;
+        Document doc = null;
+        PathSet paths = new PathSet();
         if (template != null) {
             doc = db.parse(new File(template));
-            Set<String> allPaths = new HashSet<String>();
-            Set<String> terminalPaths = new HashSet<String>();
-            checkNode(doc.getDocumentElement(), "#", "#", allPaths, terminalPaths, false, false);
+            checkNode(doc.getDocumentElement(), "#", "#", paths);
 
-            for (String p : allPaths) {
-                if (terminalPaths.contains(p)) {
-                    continue;
-                }
-                boolean found = false;
-                for (String t : terminalPaths) {
-                    if (t.startsWith(p)) {
-                        found = true;
-                        break;
+            if (strict) {
+                for (String p : paths.groupPaths) {
+                    boolean found = false;
+                    if (!found) {
+                        for (String t : paths.richPaths) {
+                            if (t.startsWith(p)) {
+                                found = true;
+                                break;
+                            }
+                        }
                     }
-                }
-                if (!found) {
-                    System.out.printf("group has no text/rich children: %s\n", p);
+                    if (!found) {
+                        for (String t : paths.textPaths) {
+                            if (t.startsWith(p)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!found) {
+                        System.out.printf("group has no text/rich children: %s\n", p);
+                    }
                 }
             }
         }
 
-        JsonValue blob;
+        JsonValue blob = null;
         if (data != null) {
             JsonReader reader = Json.createReader(new FileReader(data));
             blob = reader.read();
+        }
+
+        if (doc != null && blob != null) {
+            checkJson(blob, "#", paths);
         }
 
         return 0; // success!

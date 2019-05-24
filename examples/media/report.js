@@ -38,6 +38,15 @@ document.querySelectorAll('[data-rabble-rich][data-rabble-edit="true"]').forEach
         }
     });
 });
+document.querySelectorAll('[data-rabble-lines][data-rabble-edit="true"]').forEach((e) => {
+    e.setAttribute('contenteditable', 'true');
+    e.classList.add("editable");
+    new MediumEditor(e, {
+        toolbar: {
+            buttons: []
+        }
+    });
+});
 document.querySelectorAll('[data-rabble-text][data-rabble-edit="true"').forEach((e) => {
     e.setAttribute('contenteditable', 'true');
     e.classList.add("editable");

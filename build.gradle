@@ -1,7 +1,6 @@
 
 // Apply the java plugin to add support for Java
 plugins {
-    id 'groovy'
     id 'java'
     id "com.github.johnrengelman.shadow" version "5.0.0"
 }
@@ -22,18 +21,17 @@ shadowJar {
 // In this section you declare the dependencies for your production and test code
 dependencies {
 
-    compile 'javax.json:javax.json-api:1.1.4'
-
-    //compile 'commons-cli:commons-cli:1.4'
+    compile 'commons-io:commons-io:2.6'
     compile 'info.picocli:picocli:4.0.0-alpha-3'
-
-
+    compile 'javax.json:javax.json-api:1.1.4'
     compile 'org.glassfish:javax.json:1.1.4'
-    compile 'org.slf4j:slf4j-api:1.7.21'
 
-    implementation 'org.codehaus.groovy:groovy-all:2.4.15'
+    //implementation 'org.codehaus.groovy:groovy-all:2.4.15'
 
-    testCompile 'junit:junit:4.12'
-    testImplementation 'org.codehaus.groovy:groovy-all:2.4.15'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
+test {
+    useJUnitPlatform()
+}

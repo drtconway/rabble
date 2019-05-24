@@ -62,11 +62,13 @@ class RabbleCliTest implements Callable<Integer> {
     static class PathSet {
         public Set<String> groupPaths;
         public Set<String> richPaths;
+        public Set<String> linesPaths;
         public Set<String> textPaths;
 
         PathSet() {
             groupPaths = new HashSet<String>();
             richPaths = new HashSet<String>();
+            linesPaths = new HashSet<String>();
             textPaths = new HashSet<String>();
         }
 
@@ -87,24 +89,22 @@ class RabbleCliTest implements Callable<Integer> {
                 String elemCtxt = ctxt + "/" + elem.getNodeName();
 
                 NamedNodeMap attrs = elem.getAttributes();
+                boolean hasRabble = false;
                 boolean hasEdit = false;
-                String groupName = null;
-                String richName = null;
-                String textName = null;
+                String name = null;
+                String kind = "text";
                 for (int i = 0; i < attrs.getLength(); i++) {
                     Node attr = attrs.item(i);
                     String attrName = attr.getNodeName();
                     String attrValue = attr.getNodeValue();
                     if (attrName.startsWith("data-rabble")) {
+                        hasRabble = true;
                         switch (attrName) {
-                            case "data-rabble-group":
-                                groupName = attrValue;
+                            case "data-rabble-name":
+                                name = attrValue;
                                 break;
-                            case "data-rabble-rich":
-                                richName = attrValue;
-                                break;
-                            case "data-rabble-text":
-                                textName = attrValue;
+                            case "data-rabble-kind":
+                                kind = attrValue;
                                 break;
                             case "data-rabble-edit":
                                 hasEdit = true;
@@ -116,46 +116,127 @@ class RabbleCliTest implements Callable<Integer> {
                     }
                 }
 
-                if (paths.richPaths.contains(path)) {
-                    if (groupName != null || richName != null || textName != null || hasEdit) {
-                        error(ctxt, "elements inside a rich node must not have data-rabble attributes.");
-                        return;
+                if (paths.richPaths.contains(path) && hasRabble) {
+                    error(ctxt, "elements inside a rich node must not have data-rabble attributes.");
+                    return;
+                }
+
+                NodeList kids = elem.getChildNodes();
+
+                if (name != null) {
+                    // We have a template node, so check if it makes sense.
+                    //
+                    switch (kind) {
+                        case "group":
+                            if (hasEdit) {
+                                warn(ctxt, "group nodes are not editable");
+                            }
+                            String kidPath = path + "/" + name;
+                            paths.groupPaths.add(kidPath);
+
+                            for (int i = 0; i < kids.getLength(); i++) {
+                                checkNode(kids.item(i), elemCtxt, kidPath, paths);
+                            }
+                            break;
+                        case "rich":
+                            String richPath = path + "/" + name;
+                            paths.richPaths.add(richPath);
+
+                            for (int i = 0; i < kids.getLength(); i++) {
+                                checkRichNode(kids.item(i), elemCtxt, richPath);
+                            }
+                            break;
+                        case "lines":
+                            String linesPath = path + "/" + name;
+                            paths.linesPaths.add(linesPath);
+
+                            for (int i = 0; i < kids.getLength(); i++) {
+                                checkLinesNode(kids.item(i), elemCtxt, linesPath);
+                            }
+                            break;
+                        case "text":
+                            String textPath = path + "/" + name;
+                            paths.textPaths.add(textPath);
+
+                            for (int i = 0; i < kids.getLength(); i++) {
+                                Node kid = kids.item(i);
+                                if (kid.getNodeType() == Node.ELEMENT_NODE) {
+                                    error(ctxt, "text templates my not have element children - %s", kid.getNodeName());
+                                }
+                            }
+                            break;
+                        default:
+                            error(ctxt, "unknown kind %s", kind);
+                            break;
+                    }
+                } else {
+                    // Not a template node.
+                    //
+                    if (hasEdit) {
+                        warn(ctxt, "nodes without a name annotation should not be marked as editable.");
+                    }
+                    for (int i = 0; i < kids.getLength(); i++) {
+                        checkNode(kids.item(i), elemCtxt, path, paths);
                     }
                 }
 
-                String kidPath = path;
-                boolean kidInRich = false;
-                boolean kidInText = false;
-                if (groupName != null) {
-                    if (hasEdit) {
-                        warn(ctxt, "group nodes are not editable");
+                break;
+        }
+    }
+
+    private void checkRichNode(Node node, String ctxt, String path) {
+        switch (node.getNodeType()) {
+            case Node.ELEMENT_NODE:
+                Element elem = (Element) node;
+                String elemCtxt = ctxt + "/" + elem.getNodeName();
+
+                NamedNodeMap attrs = elem.getAttributes();
+                for (int i = 0; i < attrs.getLength(); i++) {
+                    Node attr = attrs.item(i);
+                    String attrName = attr.getNodeName();
+                    String attrValue = attr.getNodeValue();
+                    if (attrName.startsWith("data-rabble")) {
+                        error(ctxt, "rich templates may not contain rabble attributes - %s", attrName);
                     }
-                    if (richName != null || textName != null) {
-                        warn(ctxt, "group nodes may not be rich nodes or text nodes");
-                    }
-                    kidPath = path + "/" + groupName;
-                    paths.groupPaths.add(kidPath);
-                }
-                else if (richName != null) {
-                    if (textName != null) {
-                        warn(ctxt, "nodes may not be both rich nodes and text nodes");
-                    }
-                    kidInRich = true;
-                    String termPath = path + "/" + richName;
-                    paths.richPaths.add(termPath);
-                }
-                else if (textName != null) {
-                    kidInText = true;
-                    String termPath = path + "/" + textName;
-                    paths.textPaths.add(termPath);
-                }
-                else if (hasEdit) {
-                    warn(ctxt, "nodes without rich or text annotations should not be marked as editable.");
                 }
 
                 NodeList kids = elem.getChildNodes();
                 for (int i = 0; i < kids.getLength(); i++) {
-                    checkNode(kids.item(i), elemCtxt, kidPath, paths);
+                    checkRichNode(kids.item(i), elemCtxt, path);
+                }
+                break;
+        }
+    }
+
+    private void checkLinesNode(Node node, String ctxt, String path) {
+        switch (node.getNodeType()) {
+            case Node.ELEMENT_NODE:
+                // If it's an element, it had better be a DIV with no element children.
+                Element elem = (Element) node;
+
+                if (node.getNodeName() != "div") {
+                    error(ctxt, "lines templetes may only contain div elements - %s", node.getNodeName());
+                    return;
+                }
+
+                // Better not have rabble attributes.
+                NamedNodeMap attrs = elem.getAttributes();
+                for (int i = 0; i < attrs.getLength(); i++) {
+                    Node attr = attrs.item(i);
+                    String attrName = attr.getNodeName();
+                    String attrValue = attr.getNodeValue();
+                    if (attrName.startsWith("data-rabble")) {
+                        error(ctxt, "lines templates may not contain rabble attributes - %s", attrName);
+                    }
+
+                }
+
+                NodeList kids = elem.getChildNodes();
+                for (int i = 0; i < kids.getLength(); i++) {
+                    Node kid = kids.item(i);
+                    if (kid.getNodeType() == Node.ELEMENT_NODE) {
+                        error(ctxt, "lines templates may only contain div/text content - %s", kid.getNodeName());
+                    }
                 }
                 break;
         }

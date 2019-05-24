@@ -2,7 +2,7 @@
     "request": {
         "requester": {
             "doctor": "Dr Quentin Rothchild",
-                "address": "Department of Molecular Pathology\nVery Good Cancer Center\n999 High St\nMelbourne VIC 3001"
+                "address": ["Department of Molecular Pathology", "Very Good Cancer Center", "999 High St", "Melbourne VIC 3001"]
         },
             "sample": {
                 "episode": "10234567",

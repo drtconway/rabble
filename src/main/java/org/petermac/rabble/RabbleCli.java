@@ -11,7 +11,7 @@ import picocli.CommandLine.Parameters;
          name = "rabble",
          version = "rabble 1.0.0",
          subcommands = {
-            RabbleCliTest.class
+            RabbleTestCli.class
          })
 class RabbleCli implements Callable<Integer> {
 

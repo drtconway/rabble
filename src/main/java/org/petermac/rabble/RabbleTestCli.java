@@ -35,7 +35,7 @@ import picocli.CommandLine.Parameters;
 @Command(description = "check a template or data-blob for integrity",
          name = "test",
          aliases = {"check"})
-class RabbleCliTest implements Callable<Integer> {
+class RabbleTestCli implements Callable<Integer> {
 
     @Option(names = {"-V", "--version"},
             versionHelp = true,
@@ -384,7 +384,7 @@ class RabbleCliTest implements Callable<Integer> {
     }
 
     public static void main(String[] args) throws Exception {
-        int exitCode = new CommandLine(new RabbleCli()).execute(args);
+        int exitCode = new CommandLine(new RabbleTestCli()).execute(args);
         System.exit(exitCode);
     }
 }

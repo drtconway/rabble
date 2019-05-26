@@ -45,6 +45,18 @@ class RabbleTestTemplate {
             this.paths = paths;
             this.problems = problems;
         }
+
+        public void dumpPaths() {
+            System.out.println("--->");
+            for (String kind : paths.keySet()) {
+                System.out.printf("%s: %d\n", kind, paths.get(kind).size());
+                for (String pth : paths.get(kind)) {
+                    System.out.printf("%s: %s\n", kind, pth);
+                }
+            }
+            System.out.println("<---");
+        }
+
     }
 
     private final Document template;
@@ -67,10 +79,10 @@ class RabbleTestTemplate {
         RabbleTestTemplate rtt = new RabbleTestTemplate(template);
 
         rtt.checkNode(template.getDocumentElement(), "#", "#");
+        rtt.checkOrphans();
 
         Report res = new Report(rtt.paths, rtt.problems);
-        rtt.paths = null;
-        rtt.problems = null;
+
         return res;
     }
 
@@ -119,26 +131,26 @@ class RabbleTestTemplate {
                             if (hasEdit) {
                                 warn(ctxt, path, "group nodes are not editable");
                             }
-                            paths.get(name).add(kidPath);
+                            paths.get(kind).add(kidPath);
 
                             for (int i = 0; i < kids.getLength(); i++) {
                                 checkNode(kids.item(i), elemCtxt, kidPath);
                             }
                             break;
                         case "rich":
-                            paths.get(name).add(kidPath);
+                            paths.get(kind).add(kidPath);
                             for (int i = 0; i < kids.getLength(); i++) {
                                 checkRichNode(kids.item(i), elemCtxt, kidPath);
                             }
                             break;
                         case "lines":
-                            paths.get(name).add(kidPath);
+                            paths.get(kind).add(kidPath);
                             for (int i = 0; i < kids.getLength(); i++) {
                                 checkLinesNode(kids.item(i), elemCtxt, kidPath);
                             }
                             break;
                         case "text":
-                            paths.get(name).add(kidPath);
+                            paths.get(kind).add(kidPath);
                             for (int i = 0; i < kids.getLength(); i++) {
                                 Node kid = kids.item(i);
                                 if (kid.getNodeType() == Node.ELEMENT_NODE) {
@@ -196,7 +208,7 @@ class RabbleTestTemplate {
                 Element elem = (Element) node;
 
                 if (node.getNodeName() != "div") {
-                    error(ctxt, "lines templetes may only contain div elements - %s", node.getNodeName());
+                    error(ctxt, path, "lines templates may only contain div elements - %s", node.getNodeName());
                     return;
                 }
 
@@ -207,7 +219,7 @@ class RabbleTestTemplate {
                     String attrName = attr.getNodeName();
                     String attrValue = attr.getNodeValue();
                     if (attrName.startsWith("data-rabble")) {
-                        error(ctxt, "lines templates may not contain rabble attributes - %s", attrName);
+                        error(ctxt, path, "lines templates may not contain rabble attributes - %s", attrName);
                     }
 
                 }
@@ -216,10 +228,39 @@ class RabbleTestTemplate {
                 for (int i = 0; i < kids.getLength(); i++) {
                     Node kid = kids.item(i);
                     if (kid.getNodeType() == Node.ELEMENT_NODE) {
-                        error(ctxt, "lines templates may only contain div/text content - %s", kid.getNodeName());
+                        error(ctxt, path, "lines templates may only contain div/text content - %s", kid.getNodeName());
                     }
                 }
                 break;
+        }
+    }
+
+    private void checkOrphans() {
+        Set<String> allTerminals = new HashSet<String>();
+        for (String kind : paths.keySet()) {
+            if (kind == "group") {
+                continue;
+            }
+            allTerminals.addAll(paths.get(kind));
+        }
+        Set<String> groups = new HashSet<String>(paths.get("group"));
+        for (String ter : allTerminals) {
+            if (groups.size() == 0) {
+                break;
+            }
+            String foundGrp = null;
+            for (String grp : groups) {
+                if (ter.startsWith(grp)) {
+                    foundGrp = grp;
+                    break;
+                }
+            }
+            if (foundGrp != null) {
+                groups.remove(foundGrp);
+            }
+        }
+        for (String grp : groups) {
+            warn(null, grp, "group has no concrete instantiation in template");
         }
     }
 

@@ -61,6 +61,7 @@ class RabbleTestTemplate {
 
     private final Document template;
     private Map<String,Set<String>> paths;
+    private Map<String,String> pathIdx;
     private List<Message> problems;
 
     private RabbleTestTemplate(final Document template) {
@@ -71,6 +72,8 @@ class RabbleTestTemplate {
         paths.put("rich", new HashSet<String>());
         paths.put("lines", new HashSet<String>());
         paths.put("text", new HashSet<String>());
+
+        pathIdx = new HashMap<String,String>();
 
         problems = new ArrayList<Message>();
     }
@@ -131,26 +134,26 @@ class RabbleTestTemplate {
                             if (hasEdit) {
                                 warn(ctxt, path, "group nodes are not editable");
                             }
-                            paths.get(kind).add(kidPath);
+                            addPath(ctxt, kind, kidPath);
 
                             for (int i = 0; i < kids.getLength(); i++) {
                                 checkNode(kids.item(i), elemCtxt, kidPath);
                             }
                             break;
                         case "rich":
-                            paths.get(kind).add(kidPath);
+                            addPath(ctxt, kind, kidPath);
                             for (int i = 0; i < kids.getLength(); i++) {
                                 checkRichNode(kids.item(i), elemCtxt, kidPath);
                             }
                             break;
                         case "lines":
-                            paths.get(kind).add(kidPath);
+                            addPath(ctxt, kind, kidPath);
                             for (int i = 0; i < kids.getLength(); i++) {
                                 checkLinesNode(kids.item(i), elemCtxt, kidPath);
                             }
                             break;
                         case "text":
-                            paths.get(kind).add(kidPath);
+                            addPath(ctxt, kind, kidPath);
                             for (int i = 0; i < kids.getLength(); i++) {
                                 Node kid = kids.item(i);
                                 if (kid.getNodeType() == Node.ELEMENT_NODE) {
@@ -232,6 +235,18 @@ class RabbleTestTemplate {
                     }
                 }
                 break;
+        }
+    }
+
+    private void addPath(String ctxt, String kind, String path) {
+        assert paths.containsKey(kind);
+        paths.get(kind).add(path);
+        if (pathIdx.containsKey(path)) {
+            if (kind != pathIdx.get(path)) {
+                warn(ctxt, path, "path has two different kinds of instantiation in template: %s, %s", pathIdx.get(path), kind);
+            }
+        } else {
+            pathIdx.put(path, kind);
         }
     }
 

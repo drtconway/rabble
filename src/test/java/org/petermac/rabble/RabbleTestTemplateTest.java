@@ -161,4 +161,126 @@ class RabbleTestTemplateTest {
 
         assertEquals(0, report.problems.size());
     }
+
+    @Test
+    public void testSimpleTemplate4() throws Exception {
+        Document doc = Utils.makeDoc(
+            "<html>",
+            " <head>",
+            " </head>",
+            " <body>",
+            "  <div data-rabble-name='request' data-rabble-kind='group'>",
+            "   <div data-rabble-name='urn' data-rabble-kind='text'></div>",
+            "   <div data-rabble-name='address' data-rabble-kind='lines'><div>one</div><div>two</div></div>",
+            "  </div>",
+            " </body>",
+            "</html>"
+        );
+        assertNotNull(doc);
+
+
+        //System.out.println("testSimpleTemplate3");
+        RabbleTestTemplate.Report report = RabbleTestTemplate.check(doc);
+
+        assertNotNull(report);
+
+        assertEquals(4, report.paths.size());
+        assertTrue(report.paths.containsKey("group"));
+        assertEquals(1, report.paths.get("group").size());
+        assertTrue(report.paths.containsKey("rich"));
+        assertEquals(0, report.paths.get("rich").size());
+        assertTrue(report.paths.containsKey("lines"));
+        assertEquals(1, report.paths.get("lines").size());
+        assertTrue(report.paths.containsKey("text"));
+        assertEquals(1, report.paths.get("text").size());
+
+        assertTrue(report.paths.get("group").contains("#/request"));
+        assertTrue(report.paths.get("lines").contains("#/request/address"));
+        assertTrue(report.paths.get("text").contains("#/request/urn"));
+
+        assertEquals(0, report.problems.size());
+    }
+
+    @Test
+    public void testSimpleTemplate5() throws Exception {
+        Document doc = Utils.makeDoc(
+            "<html>",
+            " <head>",
+            " </head>",
+            " <body>",
+            "  <div data-rabble-name='request' data-rabble-kind='group'>",
+            "   <div data-rabble-name='urn' data-rabble-kind='text'></div>",
+            "   <div data-rabble-name='urn' data-rabble-kind='lines'><div>one</div><div>two</div></div>",
+            "  </div>",
+            " </body>",
+            "</html>"
+        );
+        assertNotNull(doc);
+
+
+        //System.out.println("testSimpleTemplate3");
+        RabbleTestTemplate.Report report = RabbleTestTemplate.check(doc);
+
+        assertNotNull(report);
+
+        assertEquals(4, report.paths.size());
+        assertTrue(report.paths.containsKey("group"));
+        assertEquals(1, report.paths.get("group").size());
+        assertTrue(report.paths.containsKey("rich"));
+        assertEquals(0, report.paths.get("rich").size());
+        assertTrue(report.paths.containsKey("lines"));
+        assertEquals(1, report.paths.get("lines").size());
+        assertTrue(report.paths.containsKey("text"));
+        assertEquals(1, report.paths.get("text").size());
+
+        assertTrue(report.paths.get("group").contains("#/request"));
+        assertTrue(report.paths.get("lines").contains("#/request/urn"));
+        assertTrue(report.paths.get("text").contains("#/request/urn"));
+
+        assertEquals(1, report.problems.size());
+        assertEquals("warn", report.problems.get(0).level);
+        assertEquals("#/html/body/div", report.problems.get(0).context);
+        assertEquals("#/request/urn", report.problems.get(0).path);
+        assertEquals("path has two different kinds of instantiation in template: text, lines",
+                     report.problems.get(0).message);
+    }
+
+    @Test
+    public void testRichTemplate1() throws Exception {
+        Document doc = Utils.makeDoc(
+            "<html>",
+            " <head>",
+            " </head>",
+            " <body>",
+            "  <div data-rabble-name='request' data-rabble-kind='group'>",
+            "   <div data-rabble-name='comment' data-rabble-kind='rich'>",
+            "    <div><b>PMS2</b> PMS2 is an important gene. Mutations to it are harmful <cite>PM31102422</cite>",
+            "    </div>",
+            "   </div>",
+            "  </div>",
+            " </body>",
+            "</html>"
+        );
+        assertNotNull(doc);
+
+
+        RabbleTestTemplate.Report report = RabbleTestTemplate.check(doc);
+
+        assertNotNull(report);
+
+        assertEquals(4, report.paths.size());
+        assertTrue(report.paths.containsKey("group"));
+        assertEquals(1, report.paths.get("group").size());
+        assertTrue(report.paths.containsKey("rich"));
+        assertEquals(1, report.paths.get("rich").size());
+        assertTrue(report.paths.containsKey("lines"));
+        assertEquals(0, report.paths.get("lines").size());
+        assertTrue(report.paths.containsKey("text"));
+        assertEquals(0, report.paths.get("text").size());
+
+        assertTrue(report.paths.get("group").contains("#/request"));
+        assertTrue(report.paths.get("rich").contains("#/request/comment"));
+
+        assertEquals(0, report.problems.size());
+    }
 }

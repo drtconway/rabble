@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonString;
@@ -217,6 +218,45 @@ class RabbleTest {
 
         JsonValue e = rabble.extract(doc.getDocumentElement());
         assertNotNull(e);
+        assertJsonEquals(json, e);
+    }
+
+    @Test
+    public void testRichExtract() throws Exception {
+        String docText = Utils.lines(
+            "<html>",
+            " <head>",
+            " </head>",
+            " <body>",
+            "  <div data-rabble-name='result' data-rabble-kind='group'>",
+            "   <div data-rabble-name='comment' data-rabble-kind='rich'>",
+            "    <div><b>PMS2</b> Mutations to the PMS2 gene are bad <cite>PM:31102422</cite>.",
+            "    </div>",
+            "   </div>",
+            "  </div>",
+            " </body>",
+            "</html>"
+        );
+        Document doc = Utils.textToDoc(docText);
+
+        assertNotNull(doc);
+
+        String jsonText = Utils.lines(
+            "{\"result\":{\"comment\":[\"\\n    \",{\"name\":\"div\",\"children\":[{\"name\":\"b\",\"children\":[\"PMS2\"]},\" Mutations to the PMS2 gene are bad \",{\"name\":\"cite\",\"children\":[\"PM:31102422\"]},\".\\n    \"]},\"\\n   \"]}}"
+        );
+        JsonValue json = Utils.textToJson(jsonText);
+        assertEquals(JsonValue.ValueType.OBJECT, json.getValueType());
+        JsonObject data = (JsonObject)json;
+        assertEquals(1, data.size());
+
+        Rabble rabble = new Rabble(doc, doc.getDocumentElement());
+        assertNotNull(rabble);
+
+        JsonValue e = rabble.extract(doc.getDocumentElement());
+        assertNotNull(e);
+
+        Json.createWriter(System.out).write(e);
+
         assertJsonEquals(json, e);
     }
 }

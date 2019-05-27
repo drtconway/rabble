@@ -25,8 +25,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSSerializer;
 
 class Rabble {
     private Document doc;
@@ -49,44 +47,50 @@ class Rabble {
             Node kid = kids.item(i);
             if (kid.getNodeType() == Node.ELEMENT_NODE) {
                 Element elem = (Element) kid;
-                if (elem.hasAttribute("data-rabble-group")) {
-                    String tn = elem.getAttribute("data-rabble-group");
-                    if (seen.contains(tn)) {
-                        continue;
-                    }
-                    if (!data.containsKey(tn)) {
-                        continue;
-                    }
-                    seen.add(tn);
-                    makeGroup(elem, data.get(tn), res);
-                } 
-                else if (elem.hasAttribute("data-rabble-text")) {
-                    String tn = elem.getAttribute("data-rabble-text");
-                    if (seen.contains(tn)) {
-                        continue;
-                    }
-                    if (!data.containsKey(tn)) {
-                        continue;
-                    }
-                    seen.add(tn);
-                    makeText(elem, data.get(tn), res);
+
+                String templateName = null;
+                if (elem.hasAttribute("data-rabble-name")) {
+                    templateName = elem.getAttribute("data-rabble-name");
                 }
-                else if (elem.hasAttribute("data-rabble-rich")) {
-                    String tn = elem.getAttribute("data-rabble-rich");
-                    if (seen.contains(tn)) {
-                        continue;
-                    }
-                    if (!data.containsKey(tn)) {
-                        continue;
-                    }
-                    seen.add(tn);
-                    makeRich(elem, data.get(tn), res);
+                String templateKind = "text";
+                if (elem.hasAttribute("data-rabble-kind")) {
+                    templateKind = elem.getAttribute("data-rabble-kind");
                 }
-                else {
+
+                if (templateName == null) {
                     /* Not a template node. */
                     Node resKid = visit(seen, elem, data);
                     res.appendChild(resKid);
+                    continue;
                 }
+
+                if (seen.contains(templateName)) {
+                    /* we've already processed this template */
+                    continue;
+                }
+                if (!data.containsKey(templateName)) {
+                    /* we don't have any data for this template */
+                    continue;
+                }
+                seen.add(templateName);
+    
+                switch (templateKind) {
+                    case "group":
+                        makeGroup(elem, data.get(templateName), res);
+                        break;
+                    case "rich":
+                        makeRich(elem, data.get(templateName), res);
+                        break;
+                    case "lines":
+                        makeLines(elem, data.get(templateName), res);
+                        break;
+                    case "text":
+                        makeText(elem, data.get(templateName), res);
+                        break;
+                    default:
+                        throw new Exception("unknown template kind");
+                }
+
             } else {
                 Node resKid = kid.cloneNode(false);
                 res.appendChild(resKid);
@@ -114,6 +118,43 @@ class Rabble {
         }
     }
 
+    private void makeRich(Element elem, JsonValue data, Element res) throws Exception {
+        Node wrapperNode = elem.cloneNode(false);
+        jsonToHtml(data, wrapperNode);
+        res.appendChild(wrapperNode);
+    }
+
+    private void makeLines(Element elem, JsonValue data, Element res) throws Exception {
+        Node txtWrapperNode = elem.cloneNode(false);
+        res.appendChild(txtWrapperNode);
+        Node lineDiv = null;
+        Node txtNode = null;
+        switch (data.getValueType()) {
+            case STRING:
+                lineDiv = doc.createElement("div");
+                lineDiv.appendChild(txtNode);
+
+                JsonString txt = (JsonString)data;
+                txtNode = doc.createTextNode(txt.getString());
+                txtWrapperNode.appendChild(lineDiv);
+                break;
+
+            case ARRAY:
+                JsonArray array = (JsonArray)data;
+                for (int i = 0; i < array.size(); i++) {
+                    lineDiv = doc.createElement("div");
+                    lineDiv.appendChild(txtNode);
+
+                    txtNode = doc.createTextNode(array.getString(i));
+                    txtWrapperNode.appendChild(lineDiv);
+                }
+                break;
+
+            default:
+                throw new Exception("makeText: unexpected value type");
+        }
+    }
+
     private void makeText(Element elem, JsonValue data, Element res) throws Exception {
         switch (data.getValueType()) {
             case STRING:
@@ -134,12 +175,6 @@ class Rabble {
         }
     }
 
-    private void makeRich(Element elem, JsonValue data, Element res) throws Exception {
-        Node wrapperNode = elem.cloneNode(false);
-        jsonToHtml(data, wrapperNode);
-        res.appendChild(wrapperNode);
-    }
-
 
     public JsonValue extract(Element elem) throws Exception {
         Map<String,List<JsonValue>> data = new HashMap<String,List<JsonValue>>();
@@ -153,39 +188,41 @@ class Rabble {
             Node kid = kids.item(i);
             if (kid.getNodeType() == Node.ELEMENT_NODE) {
                 Element elem = (Element) kid;
-                if (elem.hasAttribute("data-rabble-group")) {
-                    String tn = elem.getAttribute("data-rabble-group");
-                    Map<String,List<JsonValue>> kidData = new HashMap<String,List<JsonValue>>();
-                    revisit(elem, kidData);
-                    addExtracted(tn, buildJson(kidData), data);
+
+                String templateName = null;
+                if (elem.hasAttribute("data-rabble-name")) {
+                    templateName = elem.getAttribute("data-rabble-name");
                 }
-                else if (elem.hasAttribute("data-rabble-text")) {
-                    String tn = elem.getAttribute("data-rabble-text");
-                    extractText(elem, tn, data);
+                String templateKind = "text";
+                if (elem.hasAttribute("data-rabble-kind")) {
+                    templateKind = elem.getAttribute("data-rabble-kind");
                 }
-                else if (elem.hasAttribute("data-rabble-rich")) {
-                    String tn = elem.getAttribute("data-rabble-rich");
-                    extractRich(elem, tn, data);
-                }
-                else {
+
+                if (templateName == null) {
                     /* not a template node */
                     revisit(elem, data);
+                    continue;
+                }
+
+                switch (templateKind) {
+                    case "group":
+                        Map<String,List<JsonValue>> kidData = new HashMap<String,List<JsonValue>>();
+                        revisit(elem, kidData);
+                        addExtracted(templateName, buildJson(kidData), data);
+                        break;
+                    case "rich":
+                        extractRich(elem, templateName, data);
+                        break;
+                    case "lines":
+                        extractLines(elem, templateName, data);
+                        break;
+                    case "text":
+                        extractText(elem, templateName, data);
+                        break;
+                    default:
+                        throw new Exception("unknown template kind");
                 }
             }
-        }
-    }
-
-    private void extractText(Node node, String name, Map<String,List<JsonValue>> data) throws Exception {
-        NodeList kids = node.getChildNodes();
-        for (int i = 0; i < kids.getLength(); i++) {
-            Node kid = kids.item(i);
-            if (kid.getNodeType() == Node.ELEMENT_NODE) {
-                throw new Exception("extractText: unexpect element node");
-            }
-
-            Text txt = (Text) kid;
-            JsonValue val = Json.createValue(txt.getNodeValue());
-            addExtracted(name, val, data);
         }
     }
 
@@ -195,6 +232,62 @@ class Rabble {
             Node kid = kids.item(i);
             JsonValue val = htmlToJson(kid);
             addExtracted(name, val, data);
+        }
+    }
+
+    private void extractLines(Node node, String name, Map<String,List<JsonValue>> data) throws Exception {
+        List<String> lines = new ArrayList<String>();
+        NodeList kids = node.getChildNodes();
+        for (int i = 0; i < kids.getLength(); i++) {
+            Node kid = kids.item(i);
+            Text txt;
+            switch (kid.getNodeType()) {
+                case Node.ELEMENT_NODE:
+                    Element elem = (Element) kid;
+                    if (elem.getNodeName() != "div") {
+                        throw new Exception("only div elements allowed in lines templates");
+                    }
+                    NodeList grandKids = elem.getChildNodes();
+                    for (int j = 0; j < grandKids.getLength(); j++) {
+                        Node grandKid = grandKids.item(j);
+                        switch (grandKid.getNodeType()) {
+                            case Node.ELEMENT_NODE:
+                                throw new Exception("extractLines: unexpect element node");
+
+                            case Node.TEXT_NODE:
+                                txt = (Text) grandKid;
+                                lines.add(txt.getNodeValue());
+                                break;
+                        }
+                    }
+                    break;
+                case Node.TEXT_NODE:
+                    txt = (Text) kid;
+                    lines.add(txt.getNodeValue());
+                    break;
+            }
+        }
+        JsonArrayBuilder itmsBld = Json.createArrayBuilder();
+        for (int i = 0; i < lines.size(); i++) {
+            itmsBld.add(lines.get(i));
+        }
+        addExtracted(name, itmsBld.build(), data);
+    }
+
+    private void extractText(Node node, String name, Map<String,List<JsonValue>> data) throws Exception {
+        NodeList kids = node.getChildNodes();
+        for (int i = 0; i < kids.getLength(); i++) {
+            Node kid = kids.item(i);
+            switch (kid.getNodeType()) {
+                case Node.ELEMENT_NODE:
+                    throw new Exception("extractText: unexpect element node");
+
+                case Node.TEXT_NODE:
+                    Text txt = (Text) kid;
+                    JsonValue val = Json.createValue(txt.getNodeValue());
+                    addExtracted(name, val, data);
+                    break;
+            }
         }
     }
 

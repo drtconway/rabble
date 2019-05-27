@@ -324,13 +324,6 @@ class Rabble {
         return resBld.build();
     }
 
-    /* for testing only */
-    public Node makeHtml(JsonValue v) throws Exception {
-        Node rootNode = doc.createElement("root");
-        jsonToHtml(v, rootNode);
-        return rootNode;
-    }
-
     private void jsonToHtml(JsonValue data, Node ctxt) throws Exception {
         switch (data.getValueType()) {
             case STRING:
@@ -346,36 +339,67 @@ class Rabble {
                 break;
             case OBJECT:
                 JsonObject object = (JsonObject) data;
-                /* check Json only contains the expected keys. */
-                assert object.containsKey("name");
-                int z = 1;
-                if (object.containsKey("attributes")) {
-                    z++;
-                }
-                if (object.containsKey("children")) {
-                    z++;
-                }
-                assert object.size() == z;
+                assert object.size() == 1;
+                String tag = (String) object.keySet().toArray()[0];
 
-                Element e = doc.createElement(object.getString("name"));
+                Element e = doc.createElement(tag);
                 ctxt.appendChild(e);
 
-                if (object.containsKey("attributes")) {
-                    JsonObject attrs = object.getJsonObject("attributes");
-                    for (String attrName : attrs.keySet()) {
-                        e.setAttribute(attrName, attrs.getString(attrName));
-                    }
-                }
+                JsonValue val = object.get(tag);
+                switch (val.getValueType()) {
+                    case ARRAY:
+                        /* If the first child is the object {"*":{....}} then it's the attributes. */
+                        JsonArray kids = (JsonArray) val;
+                        Map<String,String> attrs = lookForAttributes(kids);
+                        int i0 = 0;
+                        if (attrs != null) {
+                            for (String attrName : attrs.keySet()) {
+                                String attrValue = attrs.get(attrName);
+                                e.setAttribute(attrName, attrValue);
+                            }
+                            i0 = 1; // skip the attributes for recursing.
+                        }
+                        for (int i = i0; i < kids.size(); ++i) {
+                            jsonToHtml(kids.get(i), e);
+                        }
+                        break;
 
-                if (object.containsKey("children")) {
-                    JsonArray kids = object.getJsonArray("children");
-                    for (int i = 0; i < kids.size(); i++) {
-                        jsonToHtml(kids.get(i), e);
-                    }
+                    default:
+                        jsonToHtml(val, e);
+                        break;
                 }
                 break;
+
             default:
                 throw new Exception("jsonToHtml: unexpected value type");
+        }
+    }
+
+    private Map<String,String> lookForAttributes(JsonArray kids) {
+        if (kids.size() == 0) {
+            return null;
+        }
+        JsonValue kid0 = kids.get(0);
+        switch (kid0.getValueType()) {
+            case OBJECT:
+                JsonObject object = (JsonObject) kid0;
+                // Had better be singleton whether it's the attributes or not!
+                assert object.size() == 1;
+                String key = (String) object.keySet().toArray()[0];
+                if (key != "*") {
+                    return null;
+                }
+                // Ok, now it had better be an object.
+                JsonObject attrsObj = object.getJsonObject(key);
+                Map<String,String> attrs = new HashMap<String,String>();
+                for (String attrName : attrsObj.keySet()) {
+                    String attrValue = attrsObj.getString(attrName);
+                    attrs.put(attrName, attrValue);
+                }
+                return attrs;
+
+            default:
+                return null;
         }
     }
 
@@ -383,8 +407,10 @@ class Rabble {
         switch (node.getNodeType()) {
             case Node.ELEMENT_NODE:
                 Element elem = (Element) node;
-                JsonObjectBuilder resBld = Json.createObjectBuilder();
-                resBld.add("name", elem.getNodeName());
+                String tag = elem.getNodeName();
+
+                JsonArrayBuilder resKidsBld =  Json.createArrayBuilder();
+
                 NamedNodeMap attrs = elem.getAttributes();
                 if (attrs.getLength() > 0) {
                     JsonObjectBuilder resAttrsBld = Json.createObjectBuilder();
@@ -392,21 +418,23 @@ class Rabble {
                         Node attr = attrs.item(i);
                         resAttrsBld.add(attr.getNodeName(), attr.getNodeValue());
                     }
-                    resBld.add("attributes", resAttrsBld.build());
+                    JsonObjectBuilder resAttrsWrapperBld = Json.createObjectBuilder();
+                    resAttrsWrapperBld.add("*", resAttrsBld.build());
+                    resKidsBld.add(resAttrsWrapperBld.build());
                 }
                 NodeList kids = elem.getChildNodes();
-                if (kids.getLength() > 0) {
-                    JsonArrayBuilder resKidsBld =  Json.createArrayBuilder();
-                    for (int i = 0; i < kids.getLength(); i++) {
-                        JsonValue kidRes = htmlToJson(kids.item(i));
-                        resKidsBld.add(kidRes);
-                    }
-                    resBld.add("children", resKidsBld.build());
+                for (int i = 0; i < kids.getLength(); i++) {
+                    JsonValue kidRes = htmlToJson(kids.item(i));
+                    resKidsBld.add(kidRes);
                 }
+                JsonObjectBuilder resBld = Json.createObjectBuilder();
+                resBld.add(tag, resKidsBld.build());
                 return resBld.build();
+
             case Node.TEXT_NODE:
                 Text txt = (Text) node;
                 return Json.createValue(txt.getNodeValue());
+
             default:
                 throw new Exception("htmlToJson: unexpected node type");
         }

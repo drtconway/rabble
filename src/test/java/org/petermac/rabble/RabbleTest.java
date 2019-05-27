@@ -43,9 +43,10 @@ class RabbleTest {
 
         assertNotNull(doc);
 
-        JsonValue json = Utils.makeJson(
+        String jsonText = Utils.lines(
             "{ }"
         );
+        JsonValue json = Utils.textToJson(jsonText);
         assertEquals(JsonValue.ValueType.OBJECT, json.getValueType());
         JsonObject data = (JsonObject)json;
         assertEquals(0, data.size());
@@ -56,5 +57,50 @@ class RabbleTest {
         Element e = rabble.instantiate(data);
         String eStr = Utils.serialize(e);
         assertEquals(docText, eStr);
+    }
+
+    @Test
+    public void testSimpleTemplate1() throws Exception {
+        String docText = Utils.lines(
+            "<html>",
+            " <head>",
+            " </head>",
+            " <body>",
+            "  <div data-rabble-name='request' data-rabble-kind='group'>",
+            "   <div data-rabble-name='urn' data-rabble-kind='text'></div>",
+            "  </div>",
+            " </body>",
+            "</html>"
+        );
+        Document doc = Utils.textToDoc(docText);
+
+        assertNotNull(doc);
+
+        String jsonText = Utils.lines(
+            "{\"request\": {\"urn\": \"PMEX1234567\"}}"
+        );
+        JsonValue json = Utils.textToJson(jsonText);
+        assertEquals(JsonValue.ValueType.OBJECT, json.getValueType());
+        JsonObject data = (JsonObject)json;
+        assertEquals(1, data.size());
+
+        Rabble rabble = new Rabble(doc, doc.getDocumentElement());
+        assertNotNull(rabble);
+
+        Element e = rabble.instantiate(data);
+        String eStr = Utils.serialize(e);
+
+        String resText = Utils.lines(
+            "<html>",
+            " <head>",
+            " </head>",
+            " <body>",
+            "  <div data-rabble-kind=\"group\" data-rabble-name=\"request\">",
+            "   <div data-rabble-kind=\"text\" data-rabble-name=\"urn\">PMEX1234567</div>",
+            "  </div>",
+            " </body>",
+            "</html>"
+        );
+        assertEquals(resText, eStr);
     }
 }

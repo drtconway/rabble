@@ -131,22 +131,20 @@ class Rabble {
         Node txtNode = null;
         switch (data.getValueType()) {
             case STRING:
-                lineDiv = doc.createElement("div");
-                lineDiv.appendChild(txtNode);
-
                 JsonString txt = (JsonString)data;
-                txtNode = doc.createTextNode(txt.getString());
+                lineDiv = doc.createElement("div");
                 txtWrapperNode.appendChild(lineDiv);
+                txtNode = doc.createTextNode(txt.getString());
+                lineDiv.appendChild(txtNode);
                 break;
 
             case ARRAY:
                 JsonArray array = (JsonArray)data;
                 for (int i = 0; i < array.size(); i++) {
                     lineDiv = doc.createElement("div");
-                    lineDiv.appendChild(txtNode);
-
-                    txtNode = doc.createTextNode(array.getString(i));
                     txtWrapperNode.appendChild(lineDiv);
+                    txtNode = doc.createTextNode(array.getString(i));
+                    lineDiv.appendChild(txtNode);
                 }
                 break;
 
@@ -280,7 +278,7 @@ class Rabble {
             Node kid = kids.item(i);
             switch (kid.getNodeType()) {
                 case Node.ELEMENT_NODE:
-                    throw new Exception("extractText: unexpect element node");
+                    throw new Exception("extractText: unexpected element node: " + kid.getNodeName());
 
                 case Node.TEXT_NODE:
                     Text txt = (Text) kid;

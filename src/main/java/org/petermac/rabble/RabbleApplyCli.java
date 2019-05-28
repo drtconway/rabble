@@ -71,6 +71,7 @@ class RabbleApplyCli implements Callable<Integer> {
         if (data == null) {
             JsonValue json = rabble.extract(doc.getDocumentElement());
             Json.createWriter(System.out).write(json);
+            System.out.println();
         } else {
             JsonReader reader = Json.createReader(new FileReader(data));
             JsonValue json = reader.read();
@@ -81,7 +82,6 @@ class RabbleApplyCli implements Callable<Integer> {
             JsonObject blob = (JsonObject) json;
             Element e = rabble.instantiate(blob);
             System.out.print(Utils.serialize(e));
-            return 0;
         }
 
         return 0; // success!

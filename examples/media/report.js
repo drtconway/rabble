@@ -27,7 +27,14 @@ var CiterButton = MediumEditor.extensions.button.extend({
     }
 });
 
-document.querySelectorAll('[data-rabble-rich][data-rabble-edit="true"]').forEach((e) => {
+document.querySelectorAll('[data-rabble-name][data-rabble-edit="true"]').forEach((e) => {
+    // Fill in the default "text" kind.
+    if (!e.hasAttribute('data-rabble-kind')) {
+        e.setAttribute('data-rabble-kind', 'text');
+    }
+});
+
+document.querySelectorAll('[data-rabble-kind="rich"][data-rabble-edit="true"]').forEach((e) => {
     e.setAttribute('contenteditable', 'true');
     e.classList.add("editable");
     new MediumEditor(e, {
@@ -38,7 +45,7 @@ document.querySelectorAll('[data-rabble-rich][data-rabble-edit="true"]').forEach
         }
     });
 });
-document.querySelectorAll('[data-rabble-lines][data-rabble-edit="true"]').forEach((e) => {
+document.querySelectorAll('[data-rabble-kind="lines"][data-rabble-edit="true"]').forEach((e) => {
     e.setAttribute('contenteditable', 'true');
     e.classList.add("editable");
     new MediumEditor(e, {
@@ -47,7 +54,7 @@ document.querySelectorAll('[data-rabble-lines][data-rabble-edit="true"]').forEac
         }
     });
 });
-document.querySelectorAll('[data-rabble-text][data-rabble-edit="true"').forEach((e) => {
+document.querySelectorAll('[data-rabble-kind="text"][data-rabble-edit="true"').forEach((e) => {
     e.setAttribute('contenteditable', 'true');
     e.classList.add("editable");
     new MediumEditor(e, {

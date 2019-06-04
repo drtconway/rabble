@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 
@@ -79,5 +81,33 @@ class Utils {
         lsSerializer.write(node, lsOutput);     
 
         return stringWriter.toString();
+    }
+
+    public static final JsonValue pojoToJson(Object obj) throws Exception {
+        if (obj instanceof String) {
+            return Json.createValue((String) obj);
+        }
+        if (obj instanceof Integer) {
+            return Json.createValue((Integer) obj);
+        }
+        if (obj instanceof Double) {
+            return Json.createValue((Double) obj);
+        }
+        if (obj instanceof List) {
+            JsonArrayBuilder resBld = Json.createArrayBuilder();
+            for (Object itm : (List) obj) {
+                resBld.add(pojoToJson(itm));
+            }
+            return resBld.build();
+        }
+        if (obj instanceof Map) {
+            Map<String,Object> map = (Map<String,Object>)obj;
+            JsonObjectBuilder resBld = Json.createObjectBuilder();
+            for (String key : map.keySet()) {
+                resBld.add(key, pojoToJson(map.get(key)));
+            }
+            return resBld.build();
+        }
+        throw new Exception("pojoToJson: unexpected pojo type");
     }
 }

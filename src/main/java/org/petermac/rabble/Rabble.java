@@ -26,7 +26,35 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-class Rabble {
+/**
+ * The class Rabble is the top-level class for working with rabble templates.
+ *
+ * Rabble templates work on the principle of exemplar-as-template where the
+ * template is a valid instance of a document. Where most templating strategies
+ * are uni-directional - injecting data into a template, rabble template processing
+ * is (approximately) bi-directional. Blobs of JSON stuff can be injected into a
+ * template, and blobs of JSON stuff can be extracted from a template.
+ *
+ * A template is simply a well formed HTML document with extra attributes annotating
+ * which parts of the document contain the templated data. Elements in the document
+ * that drive the templating engine are marked with <code>data-rabble-*</code> attributes.
+ *
+ * All elements that influence templating behaviour are named with a <code>data-rabble-name</code>
+ * attribute. In the documentation these are referred to as rabble nodes. Each rabble node also
+ * has a kind which may be marked with a <code>data-rabble-kind</code> attribute.
+ *
+ * As of the current version, the following types of templated data are supported:
+ *
+ * <ul>
+ *  <li><code>text</code>
+ *  <li><code>lines</code>
+ *  <li><code>rich</code>
+ *  <li><code>group</code>
+ * </ul>
+ *
+ * @author Thomas Conway
+ */
+public class Rabble {
     private Document doc;
     private Element root;
 

@@ -18,6 +18,15 @@ shadowJar {
     }
 }
 
+compileJava {
+    options.compilerArgs << '-Xlint:unchecked'
+}
+
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.compile
+}
+
 // In this section you declare the dependencies for your production and test code
 dependencies {
 

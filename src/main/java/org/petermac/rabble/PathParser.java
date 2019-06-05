@@ -2,8 +2,28 @@ package org.petermac.rabble;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.json.Json;
+
+/**
+ * The PathParser parses strings of tokens with the following grammar:
+ *
+ * <pre>
+ * primaryExpression = name | string | number | '(' expression ')' | ('@' name) | '$'
+ * applicativeExpression = primaryExpression (predicateApplication|functionApplication)?
+ * predicateApplication = '[' expression ']'
+ * functionApplication = '(' (expression (',' expression)*)? ')'
+ * unaryExpression = ('!'|'-')? applicativeExpression
+ * multiplicativeExpression = unaryExpression (('*'|'/'|'%'|'//') unaryExpression)*
+ * additiveExpression = multiplicativeExpression (('+'|'-') multiplicativeExpression)*
+ * relationalExpression = additiveExpression (('<'|'<='|'=='|'!='|'>='|'>') additiveExpression)*
+ * conjunctiveExpression = relationalExpression ('&&' relationalExpression)*
+ * disjunctiveExpression = conjunctiveExpression ('||' conjunctiveExpression)*
+ * expression = disjunctiveExpression
+ * </pre>
+ */
 class PathParser {
     PathParser(List<PathToken> tokens) {
         this.curPos = 0;
@@ -32,7 +52,7 @@ class PathParser {
             next();
             kids.add(conjunctiveExpression());
         }
-        return PathTree.make(PathToken.Kind.OR, kids);
+        return PathTree.make(PathTree.Kind.OR, kids);
     }
 
     public PathTree conjunctiveExpression() throws Exception {
@@ -42,59 +62,70 @@ class PathParser {
             next();
             kids.add(relationalExpression());
         }
-        return PathTree.make(PathToken.Kind.AND, kids);
+        return PathTree.make(PathTree.Kind.AND, kids);
     }
 
-    private static final Set<PathToken.Kind> relOps = Utils.newHashSet(
-        PathToken.Kind.LT, PathToken.Kind.LE,
-        PathToken.Kind.EQ, PathToken.Kind.NE,
-        PathToken.Kind.GE, PathToken.Kind.GT
+    @SuppressWarnings("unchecked")
+    private static final Map<PathToken.Kind,PathTree.Kind> relOps = Utils.newHashMap(
+        PathToken.Kind.LT, PathTree.Kind.LT,
+        PathToken.Kind.LE, PathTree.Kind.LE,
+        PathToken.Kind.EQ, PathTree.Kind.EQ,
+        PathToken.Kind.NE, PathTree.Kind.NE,
+        PathToken.Kind.GE, PathTree.Kind.GE,
+        PathToken.Kind.GT, PathTree.Kind.GT
     );
     public PathTree relationalExpression() throws Exception {
         PathTree res0 = additiveExpression();
-        if (more() && relOps.contains(peek().kind)) {
+        if (more() && relOps.containsKey(peek().kind)) {
             PathToken.Kind kind = next().kind;
             PathTree res1 = additiveExpression();
-            return PathTree.make(kind, res0, res1);
+            return PathTree.make(relOps.get(kind), res0, res1);
         }
         return res0;
     }
-
-    private static final Set<PathToken.Kind> addOps = Utils.newHashSet(
-        PathToken.Kind.PLUS, PathToken.Kind.MINUS
+ 
+    @SuppressWarnings("unchecked")
+    private static final Map<PathToken.Kind,PathTree.Kind> addOps = Utils.newHashMap(
+        PathToken.Kind.PLUS,  PathTree.Kind.PLUS,
+        PathToken.Kind.MINUS, PathTree.Kind.MINUS
     );
     public PathTree additiveExpression() throws Exception {
         PathTree res = multiplicativeExpression();
-        while (more() && addOps.contains(peek().kind)) {
+        while (more() && addOps.containsKey(peek().kind)) {
             PathToken.Kind kind = next().kind;
             PathTree rhs = multiplicativeExpression();
-            res = PathTree.make(kind, res, rhs);
+            res = PathTree.make(addOps.get(kind), res, rhs);
         }
         return res;
     }
 
-    private static final Set<PathToken.Kind> mulOps = Utils.newHashSet(
-        PathToken.Kind.TIMES, PathToken.Kind.SLASH,
-        PathToken.Kind.DSLASH, PathToken.Kind.MOD
+    @SuppressWarnings("unchecked")
+    private static final Map<PathToken.Kind,PathTree.Kind> mulOps = Utils.newHashMap(
+        PathToken.Kind.TIMES,  PathTree.Kind.TIMES,
+        PathToken.Kind.SLASH,  PathTree.Kind.SLASH,
+        PathToken.Kind.DSLASH, PathTree.Kind.DSLASH,
+        PathToken.Kind.MOD,    PathTree.Kind.MOD
     );
     public PathTree multiplicativeExpression() throws Exception {
         PathTree res = unaryExpression();
-        while (more() && mulOps.contains(peek().kind)) {
+        while (more() && mulOps.containsKey(peek().kind)) {
             PathToken.Kind kind = next().kind;
             PathTree rhs = unaryExpression();
-            res = PathTree.make(kind, res, rhs);
+            res = PathTree.make(mulOps.get(kind), res, rhs);
         }
         return res;
     }
 
-    private static final Set<PathToken.Kind> unaOps = Utils.newHashSet(
-        PathToken.Kind.BANG, PathToken.Kind.MINUS
+    @SuppressWarnings("unchecked")
+    private static final Map<PathToken.Kind,PathTree.Kind> unaOps = Utils.newHashMap(
+        PathToken.Kind.BANG, PathTree.Kind.NOT,
+        PathToken.Kind.MINUS, PathTree.Kind.NEG
     );
     public PathTree unaryExpression() throws Exception {
-        if (more() && unaOps.contains(peek().kind)) {
+        if (more() && unaOps.containsKey(peek().kind)) {
             PathToken.Kind kind = next().kind;
             PathTree kid = applicativeExpression();
-            return PathTree.make(kind, kid);
+            return PathTree.make(unaOps.get(kind), kid);
         } else {
             return applicativeExpression();
         }
@@ -110,12 +141,12 @@ class PathParser {
                 next();
                 PathTree pred = expression();
                 require(PathToken.Kind.RBRAC);
-                return PathTree.make(PathToken.Kind.LBRAC, prim, pred);
+                return PathTree.make(PathTree.Kind.PRED, prim, pred);
             case LPAREN:
                 next();
                 if (peek().kind == PathToken.Kind.RPAREN) {
                     next();
-                    return PathTree.make(PathToken.Kind.LPAREN, prim);
+                    return PathTree.make(PathTree.Kind.FUNC, prim);
                 } else {
                     List<PathTree> args = new ArrayList<PathTree>();
                     args.add(prim);
@@ -125,7 +156,7 @@ class PathParser {
                         args.add(expression());
                     }
                     require(PathToken.Kind.RPAREN);
-                    return PathTree.make(PathToken.Kind.LPAREN, args);
+                    return PathTree.make(PathTree.Kind.FUNC, args);
                 }
             default:
                 return prim;
@@ -138,26 +169,27 @@ class PathParser {
 
         switch (peek().kind) {
             case NAME:
+                tok = next();
+                return PathTree.make(tok.val);
             case STRING:
+                tok = next();
+                return PathTree.make(Json.createValue(tok.val));
             case NUMINT:
+                tok = next();
+                return PathTree.make(Json.createValue(Integer.valueOf(tok.val)));
             case NUMFLT:
                 tok = next();
-                return PathTree.make(tok.kind, tok.val);
+                return PathTree.make(Json.createValue(Float.valueOf(tok.val)));
 
             case DOLLAR:
                 tok = next();
-                return PathTree.make(tok.kind);
+                return PathTree.make(PathTree.Kind.ROOT);
 
             case LPAREN:
                 next();
                 val = expression();
                 require(PathToken.Kind.RPAREN);
                 return val;
-
-            case AT:
-                next();
-                tok = require(PathToken.Kind.NAME);
-                return PathTree.make(PathToken.Kind.AT, tok.val);
 
             default:
                 throw new Exception("unexpected token");

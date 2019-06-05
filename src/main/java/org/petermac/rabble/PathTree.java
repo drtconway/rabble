@@ -3,51 +3,64 @@ package org.petermac.rabble;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.json.JsonValue;
+
 class PathTree {
-    public PathToken.Kind kind;
-    public String valu;
+    public enum Kind {
+        OR, AND,                                // Logical operators
+        LT, LE, EQ, NE, GE, GT,                 // Comparison operators
+        PLUS, MINUS, TIMES, SLASH, DSLASH, MOD, // Arithmetic operators
+        NOT, NEG,                               // Unary operators
+        PRED, FUNC,                             // Applicative operators
+        ROOT, NAME, VALUE                       // Atoms
+    };
+
+    public Kind kind;
+    public String name;
+    public JsonValue value;
     public List<PathTree> kids;
 
-    private PathTree(PathToken.Kind kind) {
+    private PathTree(Kind kind) {
         this.kind = kind;
-        this.valu = null;
+        this.value = null;
+        this.value = null;
         this.kids = null;
     }
 
-    private PathTree(PathToken.Kind kind, String valu) {
-        this.kind = kind;
-        this.valu = valu;
-        this.kids = null;
-    }
-
-    private PathTree(PathToken.Kind kind, List<PathTree> kids) {
-        this.kind = kind;
-        this.valu = null;
-        this.kids = kids;
-    }
-
-    public static PathTree make(PathToken.Kind kind) {
+    public static PathTree make(Kind kind) {
         return new PathTree(kind);
     }
 
-    public static PathTree make(PathToken.Kind kind, String valu) {
-        return new PathTree(kind, valu);
+    public static PathTree make(String name) {
+        PathTree res = new PathTree(Kind.NAME);
+        res.name = name;
+        return res;
     }
 
-    public static PathTree make(PathToken.Kind kind, PathTree kid0) {
-        List<PathTree> kids = new ArrayList<PathTree>();
-        kids.add(kid0);
-        return new PathTree(kind, kids);
+    public static PathTree make(JsonValue value) {
+        PathTree res = new PathTree(Kind.VALUE);
+        res.value = value;
+        return res;
     }
 
-    public static PathTree make(PathToken.Kind kind, PathTree kid0, PathTree kid1) {
-        List<PathTree> kids = new ArrayList<PathTree>();
-        kids.add(kid0);
-        kids.add(kid1);
-        return new PathTree(kind, kids);
+    public static PathTree make(Kind kind, PathTree kid0) {
+        PathTree res =  new PathTree(kind);
+        res.kids = new ArrayList<PathTree>();
+        res.kids.add(kid0);
+        return res;
     }
 
-    public static PathTree make(PathToken.Kind kind, List<PathTree> kids) {
-        return new PathTree(kind, kids);
+    public static PathTree make(Kind kind, PathTree kid0, PathTree kid1) {
+        PathTree res =  new PathTree(kind);
+        res.kids = new ArrayList<PathTree>();
+        res.kids.add(kid0);
+        res.kids.add(kid1);
+        return res;
+    }
+
+    public static PathTree make(Kind kind, List<PathTree> kids) {
+        PathTree res =  new PathTree(kind);
+        res.kids = kids;
+        return res;
     }
 }

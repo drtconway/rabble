@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 class PathToken {
     public enum Kind {
-        NAME, STRING, NUMINT, NUMFLT, LPAREN, RPAREN, LBRAC, RBRAC, AT, COMMA, BANG,
+        NAME, STRING, NUMINT, NUMFLT, LPAREN, RPAREN, LBRAC, RBRAC, COMMA, BANG,
         PLUS, MINUS, TIMES, SLASH, DSLASH, MOD, LT, LE, EQ, NE, GE, GT,
         AND, OR, DOLLAR, _WS
     }
@@ -53,7 +53,6 @@ class PathToken {
             t.add("^(\\))", Kind.RPAREN);
             t.add("^(\\[)", Kind.LBRAC);
             t.add("^(\\])", Kind.RBRAC);
-            t.add("^(@)", Kind.AT);
             t.add("^(,)", Kind.COMMA);
             t.add("^(\\+)", Kind.PLUS);
             t.add("^(-)", Kind.MINUS);

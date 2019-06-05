@@ -46,6 +46,16 @@ class Utils {
         return new HashSet<T>(collect(items));
     }
 
+    public static final Map newHashMap(Object... items) {
+        HashMap res = new HashMap();
+        List itemList = collect(items);
+        assert itemList.size() % 2 == 0;
+        for (int i = 0; i < itemList.size(); i += 2) {
+            res.put(itemList.get(i), itemList.get(i+1));
+        }
+        return res;
+    }
+
     public static final Document makeDoc(String... ss) throws Exception {
         String docText = lines(ss);
         return textToDoc(docText);

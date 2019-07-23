@@ -11,6 +11,10 @@ import javax.json.Json;
  * The PathParser parses strings of tokens with the following grammar:
  *
  * <pre>
+ * pathExpression = ('/'|'//')? relativePath
+ * relativePath = pathStep (('/'|'//') pathStep)*
+ * pathStep = nameFilter ('[' expression ']')?
+ * nameFilter = '*' | name | '(' nameFilter ('|' nameFilter)* ')'
  * primaryExpression = name | string | number | '(' expression ')' | ('@' name) | '$'
  * applicativeExpression = primaryExpression (predicateApplication|functionApplication)?
  * predicateApplication = '[' expression ']'

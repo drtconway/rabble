@@ -2,6 +2,7 @@ package org.petermac.rabble;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
 class Utils {
+    @SuppressWarnings("unchecked")
     public static final <T> List<T> collect(T... items) {
         List<T> res = new ArrayList<T>();
         for (T item : items) {
@@ -42,10 +44,12 @@ class Utils {
         return String.join("\n", ls);
     }
 
+    @SuppressWarnings("unchecked")
     public static final <T> Set<T> newHashSet(T... items) {
         return new HashSet<T>(collect(items));
     }
 
+    @SuppressWarnings("unchecked")
     public static final Map newHashMap(Object... items) {
         HashMap res = new HashMap();
         List itemList = collect(items);
@@ -64,7 +68,7 @@ class Utils {
     public static final Document textToDoc(String docText) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder(); 
-        return db.parse(IOUtils.toInputStream(docText));
+        return db.parse(IOUtils.toInputStream(docText, Charset.forName("UTF-8")));
     }
 
     public static final JsonValue makeJson(String... lines) throws Exception {
@@ -74,7 +78,7 @@ class Utils {
     }
 
     public static final JsonValue textToJson(String jsonText) throws Exception {
-        JsonReader reader = Json.createReader(IOUtils.toInputStream(jsonText));
+        JsonReader reader = Json.createReader(IOUtils.toInputStream(jsonText, Charset.forName("UTF-8")));
         return reader.read();
     }
 
@@ -111,6 +115,7 @@ class Utils {
             return resBld.build();
         }
         if (obj instanceof Map) {
+            @SuppressWarnings("unchecked")
             Map<String,Object> map = (Map<String,Object>)obj;
             JsonObjectBuilder resBld = Json.createObjectBuilder();
             for (String key : map.keySet()) {

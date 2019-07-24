@@ -20,6 +20,7 @@ shadowJar {
 
 compileJava {
     options.compilerArgs << '-Xlint:unchecked'
+    options.compilerArgs << '-Xlint:deprecation'
 }
 
 javadoc {

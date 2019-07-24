@@ -106,7 +106,7 @@ class Rabble {
 
     makeLines(node, value, res) {
         let txtWrapperNode = node.cloneNode(false);
-        res.appendChild(wrapperNode);
+        res.appendChild(txtWrapperNode);
         if (value instanceof Array) {
             for (let i = 0; i < value.length; i++) {
                 let lineDiv = this.doc.createElement("div");
@@ -133,45 +133,6 @@ class Rabble {
             let txtNode = this.doc.createTextNode(value);
             txtWrapperNode.appendChild(txtNode);
         }
-    }
-
-    jsonToHtml(value, ctxt) {
-        if (value instanceof Array) {
-            for (let i = 0; i < value.length; i++) {
-                this.jsonToHtml(value[i], ctxt);
-            }
-            return;
-        }
-        if (value instanceof Object) {
-            // assert Object.keys(value).length == 1
-            let tag = Object.keys(value)[0];
-            let resNode = this.doc.createElement(tag);
-            ctxt.appendChild(resNode);
-            let kidVal = value[tag];
-            if (kidVal instanceof Array) {
-                if (kidVal.length == 0) {
-                    return;
-                }
-                let i0 = 0;
-                if (kidVal[0] instanceof Object && kidVal[0]["*"] != null) {
-                    let attrs = kidVal[0]["*"];
-                    for (let k in attrs) {
-                        let v = attrs[k];
-                        resNode.setAttribute(k, v);
-                    }
-                    i0 = 1;
-                }
-                for (let i = i0; i < kidVal.length; i++) {
-                    this.jsonToHtml(kidVal[i], resNode);
-                }
-            } else {
-                this.jsonToHtml(kidVal, resNode);
-            }
-            return;
-        }
-        // String
-        let txtNode = this.doc.createTextNode(value);
-        ctxt.appendChild(txtNode);
     }
 
     extract() {
@@ -253,6 +214,74 @@ class Rabble {
         }
 
         return value;
+    }
+
+    jsonToHtml(value, ctxt) {
+        if (value instanceof Array) {
+            for (let i = 0; i < value.length; i++) {
+                this.jsonToHtml(value[i], ctxt);
+            }
+            return;
+        }
+        if (value instanceof Object) {
+            // assert Object.keys(value).length == 1
+            let tag = Object.keys(value)[0];
+            let resNode = this.doc.createElement(tag);
+            ctxt.appendChild(resNode);
+            let kidVal = value[tag];
+            if (kidVal instanceof Array) {
+                if (kidVal.length == 0) {
+                    return;
+                }
+                let i0 = 0;
+                if (kidVal[0] instanceof Object && kidVal[0]["*"] != null) {
+                    let attrs = kidVal[0]["*"];
+                    for (let k in attrs) {
+                        let v = attrs[k];
+                        resNode.setAttribute(k, v);
+                    }
+                    i0 = 1;
+                }
+                for (let i = i0; i < kidVal.length; i++) {
+                    this.jsonToHtml(kidVal[i], resNode);
+                }
+            } else {
+                this.jsonToHtml(kidVal, resNode);
+            }
+            return;
+        }
+        // String
+        let txtNode = this.doc.createTextNode(value);
+        ctxt.appendChild(txtNode);
+    }
+
+    htmlToJson(node) {
+        switch (node.nodeType) {
+            case Node.ELEMENT_NODE:
+                let tag = node.nodeName;
+                let kids = []
+                if (node.hasAttributes()) {
+                    let attrs = node.attributes;
+                    let attrObj = {};
+                    for (let i = 0; i < attrs.length; i++) {
+                        attrObj[attrs[i].nodeName] = attrs[i].nodeValue;
+                    }
+                    kids.push({'*': attrObj});
+                }
+                for (let i = 0; i < node.childNodes.length; i++) {
+                    kids.push(this.htmlToJson(node.childNodes[i]));
+                }
+                if (kids.length == 1) {
+                    kids = kids[0];
+                }
+                let res = {}
+                res[tag] = kids;
+                return res;
+            case Node.TEXT_NODE:
+                return node.nodeValue;
+            default:
+                console.log('htmlToJson: unexpected node type');
+        }
     }
 }
 

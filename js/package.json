@@ -1,0 +1,15 @@
+{
+  "name": "rabble",
+  "version": "1.0.0",
+  "description": "exemplar as template report generator",
+  "main": "rabble.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Thomas Conway",
+  "license": "ISC",
+  "dependencies": {
+    "mocha": "^6.2.0",
+    "xmldom": "^0.1.27"
+  }
+}

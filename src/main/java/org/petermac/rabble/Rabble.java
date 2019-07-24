@@ -63,6 +63,10 @@ public class Rabble {
         this.root = root;
     }
 
+    /**
+     * Populate the template with the given JSON data.
+     * @return an Element node for the new new subtree.
+     */
     public Element instantiate(JsonObject data) throws Exception {
         Set<String> seen = new HashSet<String>();
         return visit(seen, root, data);
@@ -202,6 +206,10 @@ public class Rabble {
     }
 
 
+    /**
+     * Traverse a template, and extract the JSON data that populates the template.
+     * @return the JSON data that was extracted from the template.
+     */
     public JsonValue extract(Element elem) throws Exception {
         Map<String,List<JsonValue>> data = new HashMap<String,List<JsonValue>>();
         revisit(elem, data);
@@ -466,68 +474,4 @@ public class Rabble {
         }
     }
 
-/*
-    public static void main(String[] args) {
-        try {
-
-            String filename = args[0];
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder(); 
-            Document doc = db.parse(new File(filename));
-
-            Rabble r = new Rabble(doc, doc.getDocumentElement());
-
-            if (false) {
-                JsonValue j = r.htmlToJson(doc.getDocumentElement());
-                Node n = r.makeHtml(j);
-                DOMImplementationLS domImplLS = (DOMImplementationLS) doc.getImplementation();
-                LSSerializer serializer = domImplLS.createLSSerializer();
-                String str = serializer.writeToString(n);
-                System.out.println(str);
-            }
-            if (true) {
-                JsonValue j = r.extract(doc.getDocumentElement());
-                Json.createWriter(System.out).write(j);
-            }
-
-        } catch (Exception e) {
-            System.err.println(e.toString());
-        }
-
-        if (1) {
-            JsonValue j = r.htmlToJson(doc.documentElement);
-            Node n = r.makeHtml(j);
-            DOMImplementationLS domImplLS = (DOMImplementationLS) doc.getImplementation();
-            LSSerializer serializer = domImplLS.createLSSerializer();
-            String str = serializer.writeToString(n);
-            println(str);
-        }
-        if (0) {
-            JsonValue j = r.htmlToJson(doc.documentElement);
-            Json.createWriter(System.out).write(j);
-        }
-
-        if (0) {
-            JsonReader reader = Json.createReader(new FileReader(args[1]));
-            JsonValue dat = reader.read();
-
-            Element e = r.instantiate(dat);
-            DOMImplementationLS domImplLS = (DOMImplementationLS) doc.getImplementation();
-            LSSerializer serializer = domImplLS.createLSSerializer();
-            String str = serializer.writeToString(e);
-            println(str);
-        }
-
-        if (0) {
-            JsonReader reader = Json.createReader(new FileReader(args[1]));
-            JsonValue dat = reader.read();
-
-            Element e = r.instantiate(dat);
-            DOMImplementationLS domImplLS = (DOMImplementationLS) doc.getImplementation();
-            LSSerializer serializer = domImplLS.createLSSerializer();
-            String str = serializer.writeToString(e);
-            println(str);
-        }
-    }
-*/
 }

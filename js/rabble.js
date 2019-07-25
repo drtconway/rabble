@@ -138,8 +138,7 @@ class Rabble {
     extract() {
         var data = {}
         this.revisit(this.root, data);
-        return this.simplify(data);
-        //return data;
+        return this.buildJson(data);
     }
 
     revisit(node, data) {
@@ -147,73 +146,113 @@ class Rabble {
         for (let i = 0; i < kids.length; i++) {
             let kid = kids[i];
             if (kid.nodeType == Node.ELEMENT_NODE) {
-                if (kid.hasAttribute('data-rabble')) {
-                    let tn = kid.getAttribute('data-rabble');
-                    let vals = this.contentof(kid);
-                    //console.log(tn + " <- " + JSON.stringify(vals));
-                    for (let j = 0; j < vals.length; j++) {
-                        if (data[tn] == null) {
-                            data[tn] = [];
-                        }
-                        data[tn].push(vals[j]);
-                    }
-                } else {
-                    /* Not a template node. */
-                    let resKid = this.revisit(kid, data);
+                let tn = null;
+                if (kid.hasAttribute('data-rabble-name')) {
+                    tn = kid.getAttribute('data-rabble-name');
+                }
+                let tk = "text";
+                if (kid.hasAttribute('data-rabble-kind')) {
+                    tk = kid.getAttribute('data-rabble-kind');
+                }
+                if (tn == null)
+                {
+                    this.revisit(kid, data);
+                    continue;
+                }
+                switch (tk) {
+                    case "group":
+                        let kidData = {};
+                        this.revisit(kid, kidData);
+                        kidData = this.buildJson(kidData);
+                        this.addExtracted(tn, kidData, data);
+                        break;
+                    case "rich":
+                        this.extractRich(kid, tn, data);
+                        break;
+                    case "lines":
+                        this.extractLines(kid, tn, data);
+                        break;
+                    case "text":
+                        this.extractText(kid, tn, data);
+                        break;
+                    default:
+                        console.log('extract: unknown template kind ' + tk);
                 }
             }
         }
     }
 
-    contentof(node) {
+    extractRich(node, name, data) {
         let kids = node.childNodes;
-        let anyElems = false;
         for (let i = 0; i < kids.length; i++) {
-            let kid = kids[i];
-            if (kid.nodeType == Node.ELEMENT_NODE) {
-                anyElems = true;
-                break;
-            }
+            let kidData = this.htmlToJson(kids[i]);
+            this.addExtracted(name, kidData, data);
         }
-
-        if (anyElems) {
-            let data = {}
-            this.revisit(node, data);
-            return [data];
-        }
-
-        let vals = []
-        for (let i = 0; i < kids.length; i++) {
-            let kid = kids[i];
-            let val = kid.textContent;
-            if (/[^\t\n\r ]/.test(val)) {
-                vals.push(val);
-            }
-        }
-        return vals;
     }
 
-    simplify(value) {
-        if (value instanceof Array) {
-            if (value.length == 1) {
-                return this.simplify(value[0]);
+    extractLines(node, name, data) {
+        let lines = []
+        let kids = node.childNodes;
+        for (let i = 0; i < kids.length; i++) {
+            let kid = kids[i];
+            switch (kid.nodeType) {
+                case Node.ELEMENT_NODE:
+                    if (kid.nodeName != 'div') {
+                        console.log('only div elements are permitted in "lines" templates (' + kid.nodeName + ')');
+                        break;
+                    }
+                    let grandkids = kid.childNodes;
+                    for (let j = 0; j < grandkids.length; j++) {
+                        let grandkid = grandkids[j];
+                        switch (grandkid.nodeType) {
+                            case Node.TEXT_NODE:
+                                lines.push(grandkid.nodeValue);
+                                break;
+                            default:
+                                console.log('only text nodes are allowed in lines div elements');
+                        }
+                    }
+                    break;
+                case Node.TEXT_NODE:
+                    lines.push(kid.nodeValue);
+                    break;
             }
-            let res = []
-            for (let i = 0; i < value.length; i++) {
-                res.push(this.simplify(value[i]));
-            }
-            return res;
         }
+        this.addExtracted(name, lines, data);
+    }
 
-        if (value instanceof Object) {
-            let res = {}
-            for (let key in value) {
-                res[key] = this.simplify(value[key]);
+    extractText(node, name, data) {
+        let kids = node.childNodes;
+        for (let i = 0; i < kids.length; i++) {
+            let kid = kids[i];
+            switch (kid.nodeType) {
+                case Node.TEXT_NODE:
+                    this.addExtracted(name, kid.nodeValue, data);
+                    break;
+                default:
+                    console.log('only text nodes are expected in text templates');
             }
-            return res;
         }
+    }
 
-        return value;
+    addExtracted(name, value, data) {
+        if (data[name] == null) {
+            data[name] = [value];
+        } else {
+            data[name].push(value);
+        }
+    }
+
+    buildJson(data) {
+        let ks = Object.keys(data);
+        for (let i = 0; i < ks.length; i++) {
+            let k = ks[i];
+            let vs = data[k];
+            if (vs.length == 1) {
+                data[k] = vs[0];
+            }
+        }
+        return data;
     }
 
     jsonToHtml(value, ctxt) {

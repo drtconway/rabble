@@ -205,4 +205,111 @@ describe('Rabble', function() {
                         '</div>');
     });
 
+    it('extract text', function() {
+        let docStr = "<doc>" +
+                     "<div id='one'>" +
+                     "<div data-rabble-name='foo'>" +
+                     "bar" +
+                     "</div>" +
+                     "</div>" +
+                     "</doc>";
+        let doc = new XmlDom.DOMParser().parseFromString(docStr);
+        let d = doc.getElementById('one');
+        let r = new Rabble(doc, d);
+        let j = r.extract();
+        let s = JSON.stringify(j);
+        assert.equal(s, '{"foo":"bar"}');
+    });
+
+    it('extract text multiple', function() {
+        let docStr = "<doc>" +
+                     "<div id='one'>" +
+                     "<div data-rabble-name='foo'>" +
+                     "bar" +
+                     "</div>" +
+                     "<div data-rabble-name='foo'>" +
+                     "baz" +
+                     "</div>" +
+                     "</div>" +
+                     "</doc>";
+        let doc = new XmlDom.DOMParser().parseFromString(docStr);
+        let d = doc.getElementById('one');
+        let r = new Rabble(doc, d);
+        let j = r.extract();
+        let s = JSON.stringify(j);
+        assert.equal(s, '{"foo":["bar","baz"]}');
+    });
+
+    it('extract lines', function() {
+        let docStr = "<doc>" +
+                     "<div id='one'>" +
+                     "<div data-rabble-name='foo' data-rabble-kind='lines'>" +
+                     "bar" +
+                     "</div>" +
+                     "</div>" +
+                     "</doc>";
+        let doc = new XmlDom.DOMParser().parseFromString(docStr);
+        let d = doc.getElementById('one');
+        let r = new Rabble(doc, d);
+        let j = r.extract();
+        let s = JSON.stringify(j);
+        assert.equal(s, '{"foo":["bar"]}');
+    });
+
+    it('extract lines multiple', function() {
+        let docStr = "<doc>" +
+                     "<div id='one'>" +
+                     "<div data-rabble-name='foo' data-rabble-kind='lines'>" +
+                     "<div>bar</div>" +
+                     "<div>baz</div>" +
+                     "</div>" +
+                     "</div>" +
+                     "</doc>";
+        let doc = new XmlDom.DOMParser().parseFromString(docStr);
+        let d = doc.getElementById('one');
+        let r = new Rabble(doc, d);
+        let j = r.extract();
+        let s = JSON.stringify(j);
+        assert.equal(s, '{"foo":["bar","baz"]}');
+    });
+
+    it('extract rich', function() {
+        let docStr = '<doc>' +
+                     '<div id="one">' +
+                     '<div data-rabble-name="foo" data-rabble-kind="rich">' +
+                     '<p><cite data-pmid="1234">Doig et al, 2017</cite></p>' +
+                     '</div>' +
+                     '</div>' +
+                     '</doc>';
+        let doc = new XmlDom.DOMParser().parseFromString(docStr);
+        let d = doc.getElementById('one');
+        let r = new Rabble(doc, d);
+        let j = r.extract();
+        let s = JSON.stringify(j);
+        assert.equal(s, '{"foo":{"p":{"cite":[{"*":{"data-pmid":"1234"}},"Doig et al, 2017"]}}}');
+    });
+
+    it('extract group', function() {
+        let docStr = '<doc>' +
+                     '<div id="one">' +
+                     '<div data-rabble-name="foo" data-rabble-kind="group">' +
+                     '<div data-rabble-name="bar" data-rabble-kind="group">' +
+                     '<div data-rabble-name="baz" data-rabble-kind="text">qux</div>' +
+                     '<div data-rabble-name="baz" data-rabble-kind="text">wombat</div>' +
+                     '</div>' +
+                     '<div data-rabble-name="bar" data-rabble-kind="group">' +
+                     '<div data-rabble-name="baz" data-rabble-kind="text">quux</div>' +
+                     '<div data-rabble-name="baz" data-rabble-kind="text">grunt</div>' +
+                     '</div>' +
+                     '</div>' +
+                     '</div>' +
+                     '</doc>';
+        let doc = new XmlDom.DOMParser().parseFromString(docStr);
+        let d = doc.getElementById('one');
+        let r = new Rabble(doc, d);
+        let j = r.extract();
+        let s = JSON.stringify(j);
+        assert.equal(s, '{"foo":{"bar":[{"baz":["qux","wombat"]},{"baz":["quux","grunt"]}]}}');
+    });
+
 });

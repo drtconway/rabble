@@ -9,7 +9,10 @@
   "author": "Thomas Conway",
   "license": "ISC",
   "dependencies": {
+    "getenv": "^0.7.0",
     "mocha": "^6.2.0",
-    "xmldom": "^0.1.27"
+    "xmldom": "^0.1.27",
+    "xmlhttprequest": "^1.8.0",
+    "xpath": "0.0.27"
   }
 }

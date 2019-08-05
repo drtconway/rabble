@@ -89,6 +89,11 @@ class Hindcite {
     }
 
     recomputeReferences() {
+        // Slurp up all the citations in the document.
+        //
+        // We keep them in order in "pmids" so we can number
+        // them in order of first apprearence.
+        //
         let idx = {};
         let pmids = [];
         let citeNodes = this.getCiteNodes();
@@ -103,6 +108,9 @@ class Hindcite {
             let n = idx[pmid] + 1;
             node.textContent = n;
         }
+
+        // Slurp up all the references.
+        //
         let jdx = {};
         let refids = [];
         let refNodes = this.getRefNodes();
@@ -111,14 +119,32 @@ class Hindcite {
             let pmid = node.getAttribute('id');
             refids.push(pmid);
             jdx[pmid] = node;
+            let pnode = node.parent;
+            pnode.removeChild(node);
         }
 
+        // Figure out which references are missing.
+        //
         let needed = [];
         for (let i = 0; i < pmids.length; i++) {
             let pmid = pmids[i];
             if (jdx[pmid] == null) {
                 needed.push(pmid);
             }
+        }
+
+        // TODO fetch any missing references.
+
+
+        // Now remove all the references, and re-attach the ones that have citations.
+        //
+        while (this.refs.hasChildren()) {
+            this.refs.removeChild(this.refs.childNodes[0]);
+        }
+        for (let i = 0; i < pmids.length; i++) {
+            let pmid = pmids[i];
+            let node = jdx[pmid];
+            this.refs.appendChild(node);
         }
     }
 

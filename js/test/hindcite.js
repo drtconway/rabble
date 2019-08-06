@@ -115,4 +115,77 @@ describe('Hindcite', function() {
         assert.equal(n.childNodes[3].getAttribute('data-hindcite-key'), 'PMID27667712');
         assert.equal(n.childNodes[4].textContent, ']');
     });
+    it('test recomputeReferences reorder', function() {
+        // We've done the previous tests, so this is the expected state.
+        //
+        let n = doc.getElementById('test-target-1');
+        assert.equal(n.textContent, '[1, ?]');
+
+        let m = doc.getElementById('test-target-2');
+        assert.equal(m.textContent, '[4]');
+
+        let r = H.getRefNodes();
+        assert.equal(r.length, 8);
+        assert.equal(r[0].getAttribute('id'), 'PMID20066118');
+        assert.equal(r[1].getAttribute('id'), 'PMID1905840');
+        assert.equal(r[2].getAttribute('id'), 'PMID27880943');
+        assert.equal(r[3].getAttribute('id'), 'PMID27667712');
+        assert.equal(r[4].getAttribute('id'), 'PMID26228128');
+
+        H.recomputeReferences();
+
+        assert.equal(n.textContent, '[1, 2]');
+
+        assert.equal(m.textContent, '[2]');
+
+        r = H.getRefNodes();
+        assert.equal(r.length, 8);
+        assert.equal(r[0].getAttribute('id'), 'PMID20066118');
+        assert.equal(r[1].getAttribute('id'), 'PMID27667712');
+        assert.equal(r[2].getAttribute('id'), 'PMID1905840');
+        assert.equal(r[3].getAttribute('id'), 'PMID27880943');
+        assert.equal(r[4].getAttribute('id'), 'PMID26228128');
+    });
+
+    it('test recomputeReferences remove', function() {
+        let n = doc.getElementById('test-target-3-parent');
+
+        H.reformatCitation(n);
+        assert.equal(n.textContent, '[5, 6, 7, 8]');
+
+        let r = H.getRefNodes();
+        assert.equal(r.length, 8);
+        assert.equal(r[0].getAttribute('id'), 'PMID20066118');
+        assert.equal(r[1].getAttribute('id'), 'PMID27667712');
+        assert.equal(r[2].getAttribute('id'), 'PMID1905840');
+        assert.equal(r[3].getAttribute('id'), 'PMID27880943');
+        assert.equal(r[4].getAttribute('id'), 'PMID26228128');
+        assert.equal(r[5].getAttribute('id'), 'PMID21764762');
+        assert.equal(r[6].getAttribute('id'), 'PMID22673234');
+        assert.equal(r[7].getAttribute('id'), 'PMID28280037');
+        assert.equal(r[7].hasAttribute('data-hindcite-unused'), false);
+
+        assert.equal(n.childNodes.length, 9);
+        let m = doc.getElementById('test-target-3');
+        n.removeChild(m);
+        assert.equal(n.childNodes.length, 8);
+        H.reformatCitation(n);
+        assert.equal(n.textContent, '[5, 6, 8]');
+
+        H.recomputeReferences();
+
+        assert.equal(n.textContent, '[5, 6, 7]');
+
+        r = H.getRefNodes();
+        assert.equal(r.length, 8);
+        assert.equal(r[0].getAttribute('id'), 'PMID20066118');
+        assert.equal(r[1].getAttribute('id'), 'PMID27667712');
+        assert.equal(r[2].getAttribute('id'), 'PMID1905840');
+        assert.equal(r[3].getAttribute('id'), 'PMID27880943');
+        assert.equal(r[4].getAttribute('id'), 'PMID26228128');
+        assert.equal(r[5].getAttribute('id'), 'PMID21764762');
+        assert.equal(r[6].getAttribute('id'), 'PMID28280037');
+        assert.equal(r[7].getAttribute('id'), 'PMID22673234');
+        assert.equal(r[7].getAttribute('data-hindcite-unused'), 'true');
+    });
 });

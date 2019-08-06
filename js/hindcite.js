@@ -250,8 +250,6 @@ class Hindcite {
             let pmid = node.getAttribute('id');
             refids.push(pmid);
             jdx[pmid] = node.cloneNode(true);
-            let pnode = node.parent;
-            pnode.removeChild(node);
         }
 
         // Figure out which references are missing.
@@ -289,7 +287,7 @@ class Hindcite {
             let pmid = extras[i];
             let node = jdx[pmid];
             if (!node.hasAttribute('data-hindcite-unused')) {
-                node.setAttribute('data-hindcite-unused', null);
+                node.setAttribute('data-hindcite-unused', true);
             }
             this.refs.appendChild(node);
             this.setCitationLabel('?.', node);

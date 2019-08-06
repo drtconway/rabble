@@ -145,7 +145,7 @@ class Hindcite {
      * Parse a node (usually a span tag) with a 'data-hindcite-cite' tag.
      */
     parseCitationNode(citeNode) {
-        if (!citeNode.hasAttribute('data-hindcite-cite') {
+        if (!citeNode.hasAttribute('data-hindcite-cite')) {
             // not a citation node!
             return;
         }
@@ -154,12 +154,12 @@ class Hindcite {
         for (let i = 0; i < citeNode.childNodes.length; i++) {
             let node = citeNode.childNodes[i];
             if (node.nodeType != Node.TEXT_NODE)  {
-                nodes.push(node);
+                nodes.push(node.cloneNode(true));
                 continue;
             }
             let parts = node.textContent.split(/PMID:([0-9]+)/);
             if (parts.length == 1) {
-                nodes.push(node);
+                nodes.push(node.cloneNode(true));
                 continue;
             }
             for (let j = 0; j < parts.length; j++) {
@@ -186,7 +186,7 @@ class Hindcite {
     }
 
     reformatCitation(citeNode) {
-        if (!citeNode.hasAttribute('data-hindcite-cite') {
+        if (!citeNode.hasAttribute('data-hindcite-cite')) {
             // not a citation node!
             return;
         }
@@ -204,7 +204,7 @@ class Hindcite {
             if (seen[k] != null) {
                 continue;
             }
-            nodes.push(node);
+            nodes.push(node.cloneNode(true));
             seen[k] = node;
         }
 
@@ -249,7 +249,7 @@ class Hindcite {
             let node = refNodes[i];
             let pmid = node.getAttribute('id');
             refids.push(pmid);
-            jdx[pmid] = node;
+            jdx[pmid] = node.cloneNode(true);
             let pnode = node.parent;
             pnode.removeChild(node);
         }
@@ -297,7 +297,7 @@ class Hindcite {
     }
 
     getCiteNodes() {
-        if (doc.querySelectorAll != null) {
+        if (this.doc.querySelectorAll != null) {
             return this.doc.querySelectorAll('a[data-hindcite-key]');
         }
 
@@ -315,7 +315,7 @@ class Hindcite {
     }
 
     getRefNodes() {
-        if (doc.querySelectorAll != null) {
+        if (this.doc.querySelectorAll != null) {
             return this.doc.querySelectorAll('div[data-hindcite-ref]');
         }
 
@@ -342,11 +342,13 @@ class Hindcite {
     }
 
     removeAllChildren(node) {
-        while (node.hasChildren()) {
-            node.removeChild(node.childNodes[0]);
+        while (node.hasChildNodes()) {
+            //console.log('removing: ' + node.firstChild.textContent);
+            node.removeChild(node.firstChild);
         }
     }
 
 }
 
 exports.PubmedScraper = PubmedScraper;
+exports.Hindcite = Hindcite;

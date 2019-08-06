@@ -1,0 +1,86 @@
+<html>
+ <head>
+  <title>My Report</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
+  <style>
+  body {
+    width: 8in;
+    font-family: Roboto, sans-serif;
+    line-height: 1.41;
+  }
+  div[data-hindcite-references] > div {
+    padding-bottom: 1em;
+  }
+  </style>
+ </head>
+ <body>
+  <div>
+   <h2>Introduction</h2>
+   <p contenteditable='true'>
+   The tumor suppressor p53 plays an important role in the regulation of cell-cycle,
+   apoptosis, DNA repair, cellular senescence, and autophagy
+   <span data-hindcite-cite='true' id='test-target-1'>(<a data-hindcite-key='PMID20066118' href='#PMID20066118'>1</a>)</span>.
+   Accordingly, TP53 mutations and dysfunction are importantly involved in carcinogenesis
+   due to the disturbance of these biologic processes it functions in.
+   In fact, TP53 mutations occur in more than half of all human cancer cases
+   <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID1905840' href='#PMID1905840'>2</a>]</span>
+   and are independent markers of poor prognosis in a variety of cancers
+   <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID27880943' href='#PMID27880943'>3</a>]</span>.
+   p53 also plays an important role in immune regulation, e.g.,
+   the control of immune responses to infection, autoimmunity, and cancer
+   <span data-hindcite-cite='true' id='test-target-2'>[<a data-hindcite-key='PMID27667712' href='#PMID27667712'>4</a>]</span>.
+   p53 functions in immunity by induction of apoptosis, removal of apoptotic cells,
+   antiviral defense, induction of type I IFN, enhanced pathogen recognition, cytokine production,
+   and immune checkpoint regulation
+   <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID27667712' href='#PMID27667712'>4</a>]</span>.
+   Several studies have explored the association of p53 and tumor immune regulation
+   <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID26228128' href='#PMID26228128'>5</a>,
+    <a data-hindcite-key='PMID21764762' href='#PMID21764762'>6</a>,
+    <a data-hindcite-key='PMID20066118' href='#PMID20066118'>7</a>,
+    <a data-hindcite-key='PMID28280037' href='#PMID28280037'>8</a>]</span>.
+   For example, the p53 activation in the tumor microenvironment (TME) might overcome
+   tumor immune suppression and enhance antitumor immunity
+   <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID28280037' href='#PMID28280037'>8</a>]</span>.
+   p53 could transactivate many tumor immunosuppressive genes such as PD-L1, VISTA, and FOXP3
+   <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID26228128' href='#PMID26228128'>5</a>]</span>.
+   p53 functioned in both tumor suppression and anticancer immunosurveillance via regulation of VISTA
+   <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID26228128' href='#PMID26228128'>5</a>]</span>.
+  </div>
+  <div>
+   <h2>References</h2>
+   <div id='hindcite-references'>
+    <div data-hindcite-ref='true' id='PMID20066118'><span>1.</span> Zilfou J. T., Lowe S. W.
+        Tumor suppressive functions of p53. Cold Spring Harbor Perspectives in Biology. 2009;1(5)
+        <a href='https://dx.doi.org/10.1101/cshperspect.a001883.a001883'>doi</a>
+        <a href='https://www.ncbi.nlm.nih.gov/pubmed/20066118'>pubmed</a></div>
+    <div data-hindcite-ref='true' id='PMID1905840'><span>2.</span> Hollstein M., Sidransky D., Vogelstein B., Harris C. C.
+        p53 Mutations in human cancers. Science. 1991;253(5015):49–53.
+        <a href='https://dx.doi.org/10.1126/science.1905840'>doi</a>
+        <a href='https://www.ncbi.nlm.nih.gov/pubmed/1905840'>pubmed</a></div>
+    <div data-hindcite-ref='true' id='PMID27880943'><span>3.</span> Wang X., Sun Q.
+        TP53 mutations, expression and interaction networks in human cancers. Oncotarget . 2017;8(1):624–643.
+        <a href='https://www.ncbi.nlm.nih.gov/pubmed/27880943'>pubmed</a></div>
+    <div data-hindcite-ref='true' id='PMID27667712'><span>4.</span> Muñoz-Fontela C., Mandinova A., Aaronson S. A., Lee S. W.
+        Emerging roles of p53 and other tumour-suppressor genes in immune regulation. Nature Reviews Immunology. 2016;16(12):741–750.
+        <a href='https://dx.doi.org/10.1038/nri.2016.99'>doi</a>
+        <a href='https://www.ncbi.nlm.nih.gov/pubmed/27667712'>pubmed</a></div>
+    <div data-hindcite-ref='true' id='PMID26228128'><span>5.</span> Zitvogel L., Kroemer G. CANCER.
+        A p53-regulated immune checkpoint relevant to cancer. Science. 2015;349(6247):476–477.
+        <a href='https://dx.doi.org/10.1126/science.aac8475'>doi</a>
+        <a href='https://www.ncbi.nlm.nih.gov/pubmed/26228128'>pubmed</a></div>
+    <div data-hindcite-ref='true' id='PMID21764762'><span>6.</span> Textor S., Fiegler N., Arnold A., Porgador A., Hofmann T. G., Cerwenka A.
+        Human NK cells are alerted to induction of p53 in cancer cells by upregulation of the NKG2D ligands ULBP1 and ULBP2. Cancer Research. 2011;71(18):5998–6009.
+        <a href='https://dx.doi.org/10.1158/0008-5472.CAN-10-3211'>doi</a>
+        <a href='https://www.ncbi.nlm.nih.gov/pubmed/21764762'>pubmed</a></div>
+    <div data-hindcite-ref='true' id='PMID22673234'><span>7.</span> Shatz M., Menendez D., Resnick M. A.
+        The human TLR innate immune gene family is differentially influenced by DNA stress and p53 status in cancer cells. Cancer Research. 2012;72(16):3949–3957.
+        <a href='https://dx.doi.org/10.1158/0008-5472.CAN-11-4134'>doi</a>
+        <a href='https://www.ncbi.nlm.nih.gov/pubmed/22673234'>pubmed</a></div>
+    <div data-hindcite-ref='true' id='PMID28280037'><span>8.</span> Guo G., Yu M., Xiao W., Celis E., Cui Y.
+        Local activation of p53 in the tumor microenvironment overcomes immune suppression and enhances antitumor immunity. Cancer Research. 2012;77(9):2292–2305.
+        <a href='https://dx.doi.org/10.1158/0008-5472.CAN-16-2832'>doi</a>
+        <a href='https://www.ncbi.nlm.nih.gov/pubmed/28280037'>pubmed</a></div>
+   </div>
+  </div>
+ </body>
+</html>

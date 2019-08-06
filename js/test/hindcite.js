@@ -2,6 +2,7 @@ let fs = require('fs');
 let assert = require('assert');
 let XmlDom = require('xmldom');
 let PubmedScraper = require('../hindcite').PubmedScraper;
+let Hindcite = require('../hindcite').Hindcite;
 
 describe('PubmedScraper', function() {
     let doc = null;
@@ -62,4 +63,56 @@ describe('Pubmed Fetch', function() {
             assert.equal(Object.keys(ref).length, 5);
         });
     }
+});
+
+describe('Hindcite', function() {
+    let data = fs.readFileSync('test/test-doc.xml', 'utf8');
+    let doc = new XmlDom.DOMParser().parseFromString(data);
+
+    let H = new Hindcite(doc);
+    it('test getRefNodes', function() {
+        let nodes = H.getRefNodes();
+        assert.equal(nodes.length, 8);
+        assert.equal(nodes[0].getAttribute('id'), 'PMID20066118');
+        assert.equal(nodes[7].getAttribute('id'), 'PMID28280037');
+    });
+    it('test getCiteNodes', function() {
+        let nodes = H.getCiteNodes();
+        assert.equal(nodes.length, 12);
+    });
+
+    it('test reformatCitation', function() {
+        let n = doc.getElementById('test-target-1');
+        assert.equal(n.childNodes.length, 3);
+        assert.equal(n.childNodes[0].textContent, '(');
+        assert.equal(n.childNodes[1].getAttribute('data-hindcite-key'), 'PMID20066118');
+        assert.equal(n.childNodes[2].textContent, ')');
+        H.reformatCitation(n);
+        assert.equal(n.childNodes.length, 3);
+        assert.equal(n.childNodes[0].textContent, '[');
+        assert.equal(n.childNodes[1].getAttribute('data-hindcite-key'), 'PMID20066118');
+        assert.equal(n.childNodes[2].textContent, ']');
+    });
+
+    it('test parseCitationNode', function() {
+        let n = doc.getElementById('test-target-1');
+        assert.equal(n.childNodes.length, 3);
+        assert.equal(n.childNodes[0].textContent, '[');
+        assert.equal(n.childNodes[1].getAttribute('data-hindcite-key'), 'PMID20066118');
+        assert.equal(n.childNodes[2].textContent, ']');
+        n.childNodes[2].textContent = 'PMID:27667712]'
+        H.parseCitationNode(n);
+        assert.equal(n.childNodes.length, 4);
+        assert.equal(n.childNodes[0].textContent, '[');
+        assert.equal(n.childNodes[1].getAttribute('data-hindcite-key'), 'PMID20066118');
+        assert.equal(n.childNodes[2].getAttribute('data-hindcite-key'), 'PMID27667712');
+        assert.equal(n.childNodes[3].textContent, ']');
+        H.reformatCitation(n);
+        assert.equal(n.childNodes.length, 5);
+        assert.equal(n.childNodes[0].textContent, '[');
+        assert.equal(n.childNodes[1].getAttribute('data-hindcite-key'), 'PMID20066118');
+        assert.equal(n.childNodes[2].textContent, ', ');
+        assert.equal(n.childNodes[3].getAttribute('data-hindcite-key'), 'PMID27667712');
+        assert.equal(n.childNodes[4].textContent, ']');
+    });
 });

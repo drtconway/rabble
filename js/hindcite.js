@@ -136,8 +136,9 @@ class PubmedScraper {
  *  }
  */
 class Hindcite {
-    constructor(doc) {
+    constructor(doc, resolver) {
         this.doc = doc;
+        this.resolver = resolver;
         this.refs = doc.getElementById('hindcite-references');
     }
 
@@ -252,18 +253,15 @@ class Hindcite {
             jdx[pmid] = node.cloneNode(true);
         }
 
-        // Figure out which references are missing.
+        // Figure out which references are missing, and fetch them.
         //
         let needed = [];
         for (let i = 0; i < pmids.length; i++) {
             let pmid = pmids[i];
             if (jdx[pmid] == null) {
-                needed.push(pmid);
+                jdx[pmid] = this.makeRefNode(pmid, i);
             }
         }
-
-        // TODO fetch any missing references.
-
 
         // Now remove all the references, and re-attach the ones that have citations.
         //
@@ -341,9 +339,71 @@ class Hindcite {
 
     removeAllChildren(node) {
         while (node.hasChildNodes()) {
-            //console.log('removing: ' + node.firstChild.textContent);
             node.removeChild(node.firstChild);
         }
+    }
+
+    makeRefNode(pmid, lab) {
+        pmid = this.normalizePmid(pmid);
+        if (this.resolver) {
+            let ref = this.resolver.lookupPubmed(pmid);
+            if (ref == null) {
+                return this.makeDummyRefNode(pmid, lab);
+            }
+            let rn = this.doc.createElement('div');
+            rn.setAttribute('data-hindcite-ref', 'PMID' + pmid);
+            rn.setAttribute('id', 'PMID' + pmid);
+
+            let ln = this.doc.createElement('span');
+            ln.textContent = lab;
+            rn.appendChild(ln);
+
+            let txt = ref['citation'];
+            let tn = this.doc.createTextNode(txt);
+            rn.appendChild(tn);
+
+            if (true) {
+                let a = this.doc.createElement('a');
+                a.setAttribute('href', 'https://www.ncbi.nlm.nih.gov/pubmed/' + pmid);
+                a.textContent = 'pubmed';
+                rn.appendChild(a);
+            }
+
+            if (ref['doi']) {
+                let a = this.doc.createElement('a');
+                a.setAttribute('href', 'https://doi.org/' + pmid);
+                a.textContent = 'doi';
+                rn.appendChild(a);
+            }
+
+            return rn;
+        } else {
+            return this.makeDummyRefNode(pmid, lab);
+        }
+    }
+
+    makeDummyRefNode(pmid, lab) {
+        let rn = this.doc.createElement('div');
+        rn.setAttribute('data-hindcite-ref', 'PMID' + pmid);
+        rn.setAttribute('id', 'PMID' + pmid);
+
+        let ln = this.doc.createElement('span');
+        ln.textContent = lab;
+        rn.appendChild(ln);
+
+        let tn = this.doc.createTextNode('pubmed id not found');
+        rn.appendChild(tn);
+
+        return rn;
+    }
+
+    normalizePmid(pmid) {
+        let re = /^PMID([0-9]+)$/;
+        let res = re.exec(pmid);
+        if (res != null) {
+            pmid = res[1];
+        }
+        return pmid;
     }
 
 }

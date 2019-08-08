@@ -359,7 +359,7 @@ class Hindcite {
             rn.appendChild(ln);
 
             let txt = ref['citation'];
-            let tn = this.doc.createTextNode(txt);
+            let tn = this.doc.createTextNode(' ' + txt);
             rn.appendChild(tn);
 
             if (true) {
@@ -391,7 +391,7 @@ class Hindcite {
         ln.textContent = lab;
         rn.appendChild(ln);
 
-        let tn = this.doc.createTextNode('pubmed id not found');
+        let tn = this.doc.createTextNode(' pubmed id not found');
         rn.appendChild(tn);
 
         return rn;

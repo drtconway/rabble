@@ -98,8 +98,8 @@ describe('Pubmed Fetch', function() {
 describe('Hindcite', function() {
     let data = fs.readFileSync('test/test-doc.xml', 'utf8');
     let doc = new XmlDom.DOMParser().parseFromString(data);
-
-    let H = new Hindcite(doc);
+    let R = new TestCitationResolver({});
+    let H = new Hindcite(doc, R);
     it('test getRefNodes', function() {
         let nodes = H.getRefNodes();
         assert.equal(nodes.length, 8);
@@ -242,7 +242,11 @@ describe('Hindcite', function() {
         assert.equal(r[5].getAttribute('id'), 'PMID21764762');
         assert.equal(r[6].getAttribute('id'), 'PMID28280037');
         assert.equal(r[7].getAttribute('id'), 'PMID10389976');
+        assert.equal(r[7].textContent, '8. ' + R.idx['10389976']['citation'] + 'pubmed' + 'doi');
         assert.equal(r[8].getAttribute('id'), 'PMID22673234');
         assert.equal(r[8].getAttribute('data-hindcite-unused'), 'true');
+
+        //let s = new XmlDom.XMLSerializer().serializeToString(doc)
+        //console.log(s);
     });
 });

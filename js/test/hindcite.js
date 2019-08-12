@@ -3,6 +3,7 @@ let assert = require('assert');
 let XmlDom = require('xmldom');
 let PubmedScraper = require('../hindcite').PubmedScraper;
 let Hindcite = require('../hindcite').Hindcite;
+let CitationGetter = require('../hindcite').CitationGetter;
 
 class TestCitationResolver {
 
@@ -74,6 +75,38 @@ describe('PubmedScraper', function() {
         assert.equal(ref['journal'], 'Cancer research. 2012;72(16):3948-57.');
         assert.equal(ref['doi'], '10.1158/0008-5472.CAN-11-4134');
     });
+});
+
+
+describe('CitationGetter', function() {
+    let C = new CitationGetter({email: 'thomas.conway@petermac.org'});
+    if (false) {
+        it('test pubmedToDoi 1', function() {
+            this.timeout(5000);
+            let d = C.pubmedToDoi('22673234');
+            assert.equal(d, '10.1158/0008-5472.CAN-11-4134');
+        });
+        it('test pubmedToDoi 2', function() {
+            this.timeout(5000);
+            let d = C.pubmedToDoi('30382840');
+            assert.equal(d, '10.1186/s12864-018-5156-1');
+        });
+        it('test lookupDoi', function() {
+            this.timeout(5000);
+            let res = C.lookupDoi('10.1186/s12864-018-5156-1', 'biomed-central');
+            assert.equal(res.doi, '10.1186/s12864-018-5156-1');
+            assert.equal(res.citation, '1. Vu TN, Deng W, Trac QT, Calza S, Hwang W, Pawitan Y: A fast detection of fusion genes from paired-end RNA-seq data. BMC Genomics 2018, 19.');
+
+        });
+        it('test lookupPubmed', function() {
+            this.timeout(5000);
+            let res = C.lookupPubmed('30382840', 'biomed-central');
+            assert.equal(res.pmid, '30382840');
+            assert.equal(res.doi, '10.1186/s12864-018-5156-1');
+            assert.equal(res.citation, '1. Vu TN, Deng W, Trac QT, Calza S, Hwang W, Pawitan Y: A fast detection of fusion genes from paired-end RNA-seq data. BMC Genomics 2018, 19.');
+
+        });
+    }
 });
 
 describe('Pubmed Fetch', function() {
@@ -264,18 +297,26 @@ describe('Hindcite', function() {
         let r = H.getRefNodes();
         assert.equal(r.length, 9);
         assert.equal(r[0].getAttribute('id'), 'PMID20066118');
+        assert.equal(r[0].firstChild.textContent, '1.');
         assert.equal(r[1].getAttribute('id'), 'PMID27667712');
+        assert.equal(r[1].firstChild.textContent, '2.');
         assert.equal(r[2].getAttribute('id'), 'PMID1905840');
+        assert.equal(r[2].firstChild.textContent, '3.');
         assert.equal(r[3].getAttribute('id'), 'PMID27880943');
+        assert.equal(r[3].firstChild.textContent, '4.');
         assert.equal(r[4].getAttribute('id'), 'PMID26228128');
+        assert.equal(r[4].firstChild.textContent, '5.');
         assert.equal(r[5].getAttribute('id'), 'PMID21764762');
+        assert.equal(r[5].firstChild.textContent, '6.');
         assert.equal(r[6].getAttribute('id'), 'PMID28280037');
+        assert.equal(r[6].firstChild.textContent, '7.');
         assert.equal(r[7].getAttribute('id'), 'PMID10389976');
+        assert.equal(r[7].firstChild.textContent, '8.');
         assert.equal(r[7].textContent, '8. ' + R.idx['10389976']['citation'] + 'PMID:10389976' + 'doi');
         assert.equal(r[8].getAttribute('id'), 'PMID22673234');
         assert.equal(r[8].getAttribute('data-hindcite-unused'), 'true');
 
-        //let s = new XmlDom.XMLSerializer().serializeToString(doc)
-        //console.log(s);
+        let s = new XmlDom.XMLSerializer().serializeToString(doc)
+        console.log(s);
     });
 });

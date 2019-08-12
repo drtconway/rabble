@@ -1,3 +1,4 @@
+let buildUrl = require('build-url');
 let xpath = require('xpath');
 let XmlDom = require('xmldom');
 if (typeof XMLHttpRequest === 'undefined') {
@@ -79,6 +80,54 @@ class PubmedScraper {
             func(node);
             node = result.iterateNext();
         }
+    }
+}
+
+class CitationGetter {
+
+    constructor(config) {
+        this.config = config;
+    }
+
+    pubmedToDoi(pmid) {
+        let u = buildUrl('https://www.ncbi.nlm.nih.gov', {
+            path: 'pmc/utils/idconv/v1.0/',
+            queryParams: {
+                tool: 'hindcite',
+                email: this.config.email,
+                format: 'json',
+                idtype: 'pmid',
+                ids: pmid
+            }
+        });
+        let req = new XMLHttpRequest();
+        req.open('GET', u, false);
+        req.send(null);
+        let resp = JSON.parse(req.responseText);
+        if (!resp.status == 'ok') {
+            return null;
+        }
+        return resp.records[0].doi;
+    }
+
+    lookupPubmed(pmid, style) {
+        let doi = this.pubmedToDoi(pmid);
+        let res = this.lookupDoi(doi, style);
+        res.pmid = pmid;
+        return res;
+    }
+
+    lookupDoi(doi, style) {
+        // curl -LH "Accept: text/bibliography; style=mla" https://doi.org/10.1186/s12864-018-5156-1
+        //let u = buildUrl('https://doi.org', {path: doi});
+        let u = buildUrl('https://data.crossref.org', {path: doi});
+        let req = new XMLHttpRequest();
+        req.open('GET', u, false);
+        req.setRequestHeader('Accept', 'text/bibliography; style=' + style);
+        req.send(null);
+        let resp = req.responseText.trim();
+        let result = {doi: doi, citation: resp};
+        return result;
     }
 }
 
@@ -396,9 +445,10 @@ class Hindcite {
     }
 
     setCitationLabel(lab, node) {
-        if (node.nodeName == 'div' && node.hasAttribute('data-hindcite-ref')) {
+        console.log('setting citation label: ' + lab + ' -> ' + node.nodeName);
+        if (node.nodeName.toLowerCase() == 'div' && node.hasAttribute('data-hindcite-ref')) {
             let kid0 = node.firstChild;
-            if (kid0.nodeName == 'span') {
+            if (kid0.nodeName.toLowerCase() == 'span') {
                 kid0.textContent = lab;
             }
         }
@@ -476,4 +526,5 @@ class Hindcite {
 }
 
 exports.PubmedScraper = PubmedScraper;
+exports.CitationGetter = CitationGetter;
 exports.Hindcite = Hindcite;

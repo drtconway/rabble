@@ -124,6 +124,14 @@ describe('Hindcite', function() {
         assert.equal(n.childNodes[2].textContent, ']');
     });
 
+    it('test parseCitationNode unlinked', function() {
+        let citeNode = doc.createElement('span');
+        citeNode.setAttribute('data-hindcite-cite', true);
+        citeNode.textContent = '[PMID:20066118, PMID:27667712, PMID:28280037]';
+        H.parseCitationNode(citeNode);
+        assert.equal(citeNode.textContent, '[?, ?, ?]');
+    });
+
     it('test parseCitationNode', function() {
         let n = doc.getElementById('test-target-1');
         assert.equal(n.childNodes.length, 3);
@@ -145,6 +153,7 @@ describe('Hindcite', function() {
         assert.equal(n.childNodes[3].getAttribute('data-hindcite-key'), 'PMID27667712');
         assert.equal(n.childNodes[4].textContent, ']');
     });
+
     it('test recomputeReferences reorder', function() {
         // We've done the previous tests, so this is the expected state.
         //
@@ -175,6 +184,26 @@ describe('Hindcite', function() {
         assert.equal(r[2].getAttribute('id'), 'PMID1905840');
         assert.equal(r[3].getAttribute('id'), 'PMID27880943');
         assert.equal(r[4].getAttribute('id'), 'PMID26228128');
+    });
+
+    it('test parseForCitations', function() {
+        let cns = H.getCiteNodes();
+        assert.equal(cns.length, 13);
+
+        let n = doc.getElementById('the-content');
+        n.appendChild(doc.createTextNode('the quick [PMID:27667712], brown [PMID:20066118, PMID:27667712, PMID:28280037] fox.'));
+        H.parseForCitations(n);
+        H.recomputeReferences(n);
+
+        cns = H.getCiteNodes();
+        assert.equal(cns.length, 17);
+        assert.equal(cns[13].textContent, '2');
+        assert.equal(cns[14].textContent, '1');
+        assert.equal(cns[15].textContent, '2');
+        assert.equal(cns[16].textContent, '8');
+
+        //let s = new XmlDom.XMLSerializer().serializeToString(doc)
+        //console.log(s);
     });
 
     it('test recomputeReferences remove', function() {
@@ -242,7 +271,7 @@ describe('Hindcite', function() {
         assert.equal(r[5].getAttribute('id'), 'PMID21764762');
         assert.equal(r[6].getAttribute('id'), 'PMID28280037');
         assert.equal(r[7].getAttribute('id'), 'PMID10389976');
-        assert.equal(r[7].textContent, '8. ' + R.idx['10389976']['citation'] + 'pubmed' + 'doi');
+        assert.equal(r[7].textContent, '8. ' + R.idx['10389976']['citation'] + 'PMID:10389976' + 'doi');
         assert.equal(r[8].getAttribute('id'), 'PMID22673234');
         assert.equal(r[8].getAttribute('data-hindcite-unused'), 'true');
 

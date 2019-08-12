@@ -143,6 +143,73 @@ class Hindcite {
     }
 
     /**
+     * scan the text nodes in a document subtree looking for new citations.
+     *
+     */
+    parseForCitations(node) {
+        switch (node.nodeType) {
+            case Node.TEXT_NODE: {
+                let txt = node.nodeValue;
+                let re = /\[PMID:([0-9]+)(, PMID:([0-9]+))*\]/g;
+                let parts = [];
+                let beg = 0;
+                let m = null;
+                while (m = re.exec(txt)) {
+                    let citeTxt = m[0];
+                    let fstTxt = txt.substring(beg, m.index);
+                    beg = m.index + citeTxt.length;
+
+                    let citeNode = this.doc.createElement('span');
+                    citeNode.setAttribute('data-hindcite-cite', true);
+                    citeNode.textContent = citeTxt;
+                    this.parseCitationNode(citeNode);
+
+                    if (fstTxt.length > 0) {
+                        parts.push(this.doc.createTextNode(fstTxt));
+                    }
+                    parts.push(citeNode);
+                }
+                if (parts.length == 0) {
+                    return null;
+                }
+                let lstTxt = txt.substring(beg, txt.length);
+                if (lstTxt.length > 0) {
+                    parts.push(this.doc.createTextNode(lstTxt));
+                }
+                return parts;
+            }
+            break;
+            case Node.ELEMENT_NODE: {
+                if (node.hasAttribute('data-hindcite-cite')) {
+                    this.parseCitationNode(node);
+                    return null;
+                }
+                let kids = node.childNodes;
+                let newKids = [];
+                let changed = false;
+                for (let i = 0; i < kids.length; i++) {
+                    let kid = kids[i];
+                    let res = this.parseForCitations(kid);
+                    if (res == null) {
+                        newKids.push(kid.cloneNode(true));
+                        continue;
+                    }
+                    newKids = newKids.concat(res);
+                    changed = true;
+                }
+                if (changed) {
+                    this.removeAllChildren(node);
+                    for (let i = 0; i < newKids.length; i++) {
+                        node.appendChild(newKids[i]);
+                    }
+                }
+            }
+            break;
+        }
+        return null;
+    }
+
+    /**
      * Parse a node (usually a span tag) with a 'data-hindcite-cite' tag.
      */
     parseCitationNode(citeNode) {
@@ -167,7 +234,7 @@ class Hindcite {
                 if ((j & 1) == 0) {
                     // Parts 0, 2, ... are text
                     if (parts[j].length > 0) {
-                        citeNode.appendChild(this.doc.createTextNode(parts[j]));
+                        nodes.push(this.doc.createTextNode(parts[j]));
                     }
                 } else {
                     // Parts 1, 3, ... are PMIDs
@@ -365,7 +432,7 @@ class Hindcite {
             if (true) {
                 let a = this.doc.createElement('a');
                 a.setAttribute('href', 'https://www.ncbi.nlm.nih.gov/pubmed/' + pmid);
-                a.textContent = 'pubmed';
+                a.textContent = 'PMID:' + pmid;
                 rn.appendChild(a);
             }
 

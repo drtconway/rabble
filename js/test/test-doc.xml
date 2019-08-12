@@ -16,7 +16,7 @@
  <body>
   <div>
    <h2>Introduction</h2>
-   <p contenteditable='true'>
+   <p id='the-content'>
    The tumor suppressor p53 plays an important role in the regulation of cell-cycle,
    apoptosis, DNA repair, cellular senescence, and autophagy
    <span data-hindcite-cite='true' id='test-target-1'>(<a data-hindcite-key='PMID20066118' href='#PMID20066118'>1</a>)</span>.
@@ -45,6 +45,7 @@
    <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID26228128' href='#PMID26228128'>5</a>]</span>.
    p53 functioned in both tumor suppression and anticancer immunosurveillance via regulation of VISTA
    <span data-hindcite-cite='true'>[<a data-hindcite-key='PMID26228128' href='#PMID26228128'>5</a>]</span>.
+   </p>
   </div>
   <div>
    <h2>References</h2>
